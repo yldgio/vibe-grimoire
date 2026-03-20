@@ -1,0 +1,38 @@
+# --- OS Artifacts ---
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# --- Editor Artifacts ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*.orig
+*.bak
+*~
+.history/
+
+# --- Secrets & Credentials ---
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+.secrets/
+
+# --- PowerShell ---
+PowerShellEditorServices.json
+
+# --- General ---
+*.log
+tmp/
+temp/
+*.tmp
+.cache/
