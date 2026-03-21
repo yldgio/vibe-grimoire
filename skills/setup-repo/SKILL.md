@@ -2,7 +2,7 @@
 name: setup-repo
 description: >-
   Bootstrap a new project/repository from scratch with all the essentials: AGENTS.md,
-  git init, .gitignore, .gitattributes, and relevant Copilot skills. USE THIS SKILL
+  git init, .gitignore, .gitattributes, and relevant agentic skills. USE THIS SKILL
   when the user wants to set up a new repo, initialize a project folder, bootstrap a
   working directory, scaffold a project from scratch, or do a fresh project setup —
   even if they don't say "setup-repo". Triggers on: "set up my repo", "bootstrap this
@@ -13,37 +13,43 @@ description: >-
 
 # Setup Repo
 
-This skill bootstraps a new project folder with the user's preferences. It interviews the user, inspects the folder, then sets up git infrastructure, AGENTS.md, and installs relevant Copilot skills in one go.
+This skill bootstraps a new project folder with the user's preferences. It interviews the user, inspects the folder, then sets up git infrastructure, a minimal AGENTS.md, hook-based tool constraints, and relevant agentic skills in one go.
 
 ## Step 1: Interview the user
 
-Use `ask_user` to collect these three things before touching any files:
+ask the user to collect these core things before touching any files:
 
 1. **Project goal** — one sentence: what is this project for?
 2. **Tech stack** — languages, frameworks, runtimes (e.g., "Python, FastAPI, Postgres" or "TypeScript, React, Vite")
-3. **Skills** — any specific Copilot skills they want added by name (optional; you'll suggest more in Step 7)
+3. **Skills** — any specific agentic skills they want added by name (optional; you'll suggest more in Step 8)
+
+When the project has tool-driven workflow constraints, also collect:
+
+4. **Runtime targets** — which runtimes should get generated enforcement hooks (`GitHub Copilot CLI`, `OpenCode`)
+5. **Tool constraints** — package manager, task runner/scripts, formatter, linter, test runner, and extra banned commands
+6. **Strictness** — whether each category is hard-blocked or warning-only
 
 If files already exist in the folder (source files, config files), scan them first and pre-fill or suggest answers to reduce friction.
 
 If the user skips the interview, infer everything from the folder contents and proceed with sensible defaults. Note what was inferred in your summary.
 
-## Step 2: Scan the current folder
+## Step 2: Explore the current folder
 
-Inspect the working directory before generating any files:
+use a subagent to explore and inspect the working directory before generating any files:
 
-- Detect source files by extension (`.py`, `.ts`, `.js`, `.go`, `.cs`, `.java`, `.rs`, `.rb`, etc.)
-- Detect config files (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `*.csproj`, `Dockerfile`, `.github/`, etc.)
-- Note any existing documentation (README.md, docs/)
+- Detect source files by extension 
+- Detect config files
+- Note any existing documentation
 
 This scan informs the gitignore, gitattributes, and skills selection. Don't guess the stack — use what you actually find.
 
 ## Step 3: Initialize git
 
+If `.git` already exists, skip this and note it in the final summary.
 ```bash
-git init
+git init .
 ```
 
-If `.git` already exists, skip this and note it in the final summary.
 
 ## Step 4: Create .gitignore
 
@@ -97,42 +103,74 @@ Generate a `.gitattributes` that handles cross-platform consistency and binary f
 *.pdf binary
 ```
 
-Add linguist-vendored overrides for generated files if present (e.g., `dist/** linguist-vendored`). Add `merge=ours` for lock files if the stack uses them (e.g., `package-lock.json merge=ours`).
+Add linguist-vendored overrides for generated files if present (e.g., `dist/** linguist-vendored`).
 
 ## Step 6: Create AGENTS.md
 
-Create `AGENTS.md` at the project root. It must stay **under 150 lines** — keep it focused and scannable.
+Create `AGENTS.md` at the target project root. It must stay **between 3 and 5 lines** total.
 
-Structure it as:
-1. **Project** — one-line description (from the interview)
-2. **Stack & key paths** — languages, frameworks, main directories
-3. **Commands** — build, test, lint (leave as `# TODO` if not yet known)
-4. **Conventions** — any coding rules visible from the repo (or leave minimal if brand new)
-5. **Maintenance rules** — the four rules below are **mandatory** and must appear in every generated AGENTS.md
+Treat it as a tiny orientation card, not a policy file:
 
-### Mandatory maintenance rules block
+- Include the project in one line
+- Include stack only when the project is genuinely multi-stack
+- Include key paths only for large projects
+- Do **not** put maintenance rules, tool policies, or hook instructions in `AGENTS.md`
 
-Include this section verbatim (tailor wording slightly to the project if needed, but preserve all four rules):
+Default template:
 
 ```markdown
-## Maintenance rules
-
-- **Self-update**: whenever the repo structure, stack, or conventions change, update this file to
-  reflect them. Keep AGENTS.md accurate and under 150 lines at all times.
-- **Documentation**: keep README.md and all files under docs/ updated and in sync with code
-  changes. Never let documentation drift from the implementation.
-- **Git housework**: write clean, atomic commits. Use conventional commit format
-  (feat / fix / docs / chore / refactor / test). Delete merged branches. Prefer rebase over
-  merge when integrating feature branches into main. Keep the commit history readable.
-- **Code hygiene**: before finishing any task, remove dead code, unused imports, commented-out
-  blocks, and debug artifacts.
+# AGENTS.md
+Project: <one-line purpose>
+Stack: <only if multi-stack>
+Key paths: <only if large project>
 ```
 
-Do not exceed 150 lines. If you are approaching the limit, cut prose, not the maintenance rules.
+If the project is simple and single-stack, 3 lines is fine. Never exceed 5 lines.
+This rule is for generated target repos, not for the published skill-collection repo that may document broader conventions.
 
-## Step 7: Install relevant Copilot skills
+## Step 7: Capture tool constraints and generate hooks
 
-Based on the stack and the user's stated preferences, find and add relevant skills as agentic skill files in the project.
+If the project has explicit tool preferences or restrictions, move that policy out of `AGENTS.md` and into hooks.
+
+### Constraints to capture
+
+- Package manager
+- Task runner / scripts
+- Formatter
+- Linter
+- Test runner
+- Extra banned commands
+
+For each category, collect:
+
+- Preferred tool/command
+- Disallowed alternatives
+- Whether the category is hard-blocked or warning-only
+
+### Hook generation flow
+
+1. Ask which runtimes to generate for (`GitHub Copilot CLI`, `OpenCode`)
+2. Ask for confirmation before generating runtime files
+3. Create canonical hook artifacts in `hooks/tool-guard/`
+4. Use the `tool-guard` skill to generate runtime-native enforcement files when it is available
+
+Canonical artifacts must include:
+
+- `hooks/tool-guard/README.md`
+- `hooks/tool-guard/policy.json`
+
+Runtime-native outputs must be generated per selected runtime:
+
+- **GitHub Copilot CLI** → `.github/hooks/*.json` with `preToolUse` enforcement
+- **OpenCode** → `.opencode/plugins/` hook plugin plus any required `opencode.json` wiring
+
+Keep all operational tool policy in hooks, not in `AGENTS.md`.
+
+If `tool-guard` is not available, still create the canonical `hooks/tool-guard/` artifacts and clearly report that runtime-native hook generation was skipped.
+
+## Step 8: Install relevant agentic skills
+
+Based on the stack, the user's stated preferences, and whether hook-based policy is needed, find and add relevant skills as agentic skill files in the project.
 
 ### Automatic skill mapping
 
@@ -144,6 +182,7 @@ Based on the stack and the user's stated preferences, find and add relevant skil
 | Kubernetes / k8s                      | `k8s-manifest-generator`, `k8s-security-policies`    |
 | Any GitHub-hosted project             | `gh-cli`, `conventional-commit`, `git-advanced-workflows` |
 | Any project (always consider)         | `conventional-commit`                                |
+| Explicit tool constraints / runtime hooks | `tool-guard`                                      |
 
 ### How to add skills
 
@@ -162,7 +201,7 @@ Also add any skills the user explicitly requested by name in the interview (Step
 
 Tell the user which skills were added and why (one line each).
 
-## Step 8: Summarize
+## Step 9: Summarize
 
 After all steps, give the user a concise checklist:
 
@@ -170,7 +209,9 @@ After all steps, give the user a concise checklist:
 ✅ git init (or ⏭ already initialized)
 ✅ .gitignore created (Python + secrets)
 ✅ .gitattributes created
-✅ AGENTS.md created (87 lines)
+✅ AGENTS.md created (3–5 lines)
+✅ Tool constraints captured in hooks/tool-guard/
+✅ Runtime hooks generated for: GitHub Copilot CLI, OpenCode
 ✅ Skills added to .agents/skills/: conventional-commit, docker, gh-cli
 ```
 
