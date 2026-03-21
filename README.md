@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-3-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-4-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -70,6 +70,23 @@ skills/tool-guard/SKILL.md
 skills/tool-guard/references/copilot-cli.md
 skills/tool-guard/references/opencode.md
 skills/tool-guard/references/claude-code.md
+```
+
+---
+
+### `prd-slice`
+
+Break a PRD into independently-deliverable vertical slices (tracer bullets) and create them in Azure DevOps, GitHub Issues, or Jira.
+
+Each slice is a thin end-to-end cut through every layer (schema → API → UI → tests). The skill guides you through drafting slices, quizzing the breakdown with the user, and creating work items in dependency order.
+
+Tracker-specific logic (CLI commands, body templates, linking) is encapsulated in per-tracker reference files — adding a new tracker only requires a new file.
+
+```
+skills/prd-slice/SKILL.md
+skills/prd-slice/references/azure-devops.md   # AzDO CLI commands + work item template
+skills/prd-slice/references/github.md         # gh CLI commands + issue template
+skills/prd-slice/references/jira.md           # stub — planned
 ```
 
 ---
