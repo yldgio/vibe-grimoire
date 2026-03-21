@@ -1,0 +1,23 @@
+{
+  "skill_name": "setup-repo",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I made a brand-new empty folder for a Python FastAPI service. Please set up the repo basics for me: initialize git, create a sensible .gitignore and .gitattributes, add a tiny AGENTS.md, and install any agent skills that would obviously help for this stack.",
+      "expected_output": "The skill should treat this as a fresh bootstrap, initialize git, create the core setup files, and install relevant skills for the declared stack.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "This project is already initialized with git and has a Vite + TypeScript app in it, but the setup is messy. I want you to fix the repo setup, add anything important that is missing, refresh stale scaffolding, and avoid overwriting customized files unless you need to ask first.",
+      "expected_output": "The skill should detect update/repair mode, audit the existing repo, make safe additive updates, and preserve or explicitly confirm before rewriting conflicting customized setup files.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I have an existing .NET repo with a custom .gitignore, an old AGENTS.md, and some GitHub hook files already present. Please clean up the repo setup, but inspect what is there first and ask before replacing anything that looks project-specific.",
+      "expected_output": "The skill should audit existing setup artifacts, refresh only the safe pieces directly, and request confirmation before replacing project-specific AGENTS.md or hook logic.",
+      "files": []
+    }
+  ]
+}

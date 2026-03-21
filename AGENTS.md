@@ -12,8 +12,8 @@ in daily vibe coding — shareable, reusable, cross-agent primitives.
 
 ```
 skills/             # Published skills in skills/<skill-name>/SKILL.md
-hooks/              # Canonical hook definitions and policy artifacts
-agents/             # Custom agent definitions
+.github/agents/     # Repo-local custom agent definitions
+.agents/skills/     # Local runtime/user skills for this environment
 ```
 
 ## Commands
@@ -26,14 +26,14 @@ git log --oneline -20          # Review recent commits
 
 ## Conventions
 
-- Every skill lives in its own folder: `skills/<skill-name>/SKILL.md`
-- Every hook lives in its own folder: `hooks/<hook-name>/`, typically with `README.md` and any structured artifacts such as `policy.json`
-- Every agent lives in its own folder: `agents/<agent-name>/<agent-name>.agent.md`
-- Frontmatter (`name:`, `description:`) is required on every skill/agent file
+- Every published skill lives in its own folder: `skills/<skill-name>/SKILL.md`
+- Repo-local runtime/user skills live under `.agents/skills/<skill-name>/SKILL.md` and stay separate from published `skills/`
+- Current custom agents in this repo live under `.github/agents/<agent-name>.agent.md`
+- If canonical hooks are added to this collection, store them in `hooks/<hook-name>/`, typically with `README.md` and any structured artifacts such as `policy.json`
+- Frontmatter (`name:`, `description:`) is required on every published skill/agent file
 - Keep descriptions under 300 chars — they appear in search results
 - Filenames use `kebab-case`
-- Local runtime/user skills belong in `.agents/skills/` in the target environment, not in this published collection
-- Runtime-native hook outputs for target repos may live under `.github/hooks/` or `.opencode/plugins/`, but the published source of truth in this repo lives under `hooks/`
+- Runtime-native hook outputs for target repos may live under `.github/hooks/` or `.opencode/plugins/`; keep them separate from any canonical `hooks/` content when hooks are added here
 
 ## Maintenance rules
 
