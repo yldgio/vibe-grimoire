@@ -1,11 +1,11 @@
 ---
-name: plan-groom
+name: pre-mortem
 description: >-
-  Relentlessly interrogate a user's plan or design until you reach shared understanding,
-  walking every branch of the decision tree and resolving dependencies one-by-one. Use
-  this when the user wants to stress-test a plan, get questioned on a design, asks you
-  to "ask me", says "interrogami" or "fammi domande", mentions "design of design", or
-  wants rigorous design discovery before planning an implementation.
+  Run a pre-mortem on a plan or design: assume it failed, then relentlessly
+  interrogate every branch of the decision tree to find out why — and fix it
+  before you start. Use when the user wants to stress-test a plan, asks you to
+  "ask me", says "interrogami" or "fammi domande", mentions "pre-mortem",
+  "design of design", or wants rigorous design discovery before implementation.
 ---
 
 Interview me relentlessly about every aspect of a plan or idea until we reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.

@@ -74,14 +74,14 @@ skills/tool-guard/references/claude-code.md
 
 ---
 
-### `plan-groom`
+### `pre-mortem`
 
 Stress-test a plan before writing a single line of code.
 
-Interrogates your design by walking every decision branch, surfacing dependencies and edge cases until you have shared understanding. Outputs a `{project}-design.md`. Never applies changes directly.
+Assumes the plan already failed, then interrogates every branch of the decision tree to surface why — and fix it before you start. Asks hard questions, recommends answers where it can, and outputs a `{project}-design.md`. Never applies changes directly.
 
 ```
-skills/plan-groom/SKILL.md
+skills/pre-mortem/SKILL.md
 ```
 
 ---
