@@ -15,19 +15,33 @@ Works with **GitHub Copilot CLI**, **OpenCode**, and **Claude Code**.
 
 Skills live in `skills/<name>/SKILL.md` (source) and are installed to `.agents/skills/<name>/SKILL.md` (runtime pickup).
 
-**1. Clone this repo**
+### Option A — one-liner with npx (recommended)
+
 ```bash
-git clone https://github.com/yldgio/vibe-grimoire.git
+npx skills install https://github.com/yldgio/vibe-grimoire --skill setup-repo
 ```
 
-**2. Install a skill into your project**
+Install multiple skills at once:
+
+```bash
+npx skills install https://github.com/yldgio/vibe-grimoire \
+  --skill setup-repo \
+  --skill create-prd \
+  --skill prd-slice
+```
+
+### Option B — manual copy
+
 ```bash
 # From your project root
+git clone https://github.com/yldgio/vibe-grimoire.git /tmp/vibe-grimoire
 mkdir -p .agents/skills/setup-repo
-cp path/to/code-skills/skills/setup-repo/SKILL.md .agents/skills/setup-repo/
+cp /tmp/vibe-grimoire/skills/setup-repo/SKILL.md .agents/skills/setup-repo/
 ```
 
-**3. Invoke the skill** — tell your agent to "use the setup-repo skill" (Copilot CLI, OpenCode, or Claude Code all pick up `.agents/skills/` automatically).
+### Invoke the skill
+
+Tell your agent: *"use the setup-repo skill"* — GitHub Copilot CLI, OpenCode, and Claude Code all pick up `.agents/skills/` automatically.
 
 > **Tip:** Use the [`setup-repo`](#setup-repo) skill itself to scaffold `.agents/skills/` in any new project.
 
@@ -180,15 +194,6 @@ skills/pre-mortem/SKILL.md
 - **Denies** destructive git operations (`reset --hard`, `checkout --`, `clean -fd`)
 
 Runtime hook scripts in `.github/hooks/` (Copilot CLI) and `.claude/hooks/` (Claude Code) read this policy on every tool call.
-
----
-
-## Sub-projects
-
-| Project | Description |
-|---------|-------------|
-| [`opencode-browser/`](opencode-browser/) | Control a real Chromium browser (Chrome/Brave/Arc/Edge) from OpenCode using your existing profile |
-| [`opencode-scheduler/`](opencode-scheduler/) | Run AI agents on a schedule — cron-style recurring tasks for OpenCode |
 
 ---
 
