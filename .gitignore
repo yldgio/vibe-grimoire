@@ -36,3 +36,4 @@ tmp/
 temp/
 *.tmp
 .cache/
+skills-lock.json
