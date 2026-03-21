@@ -47,18 +47,9 @@ git init .
 
 ## Step 4: Create or update .gitignore
 
-Generate a `.gitignore` tailored to the detected stack, or merge missing patterns into an existing one. Prefer additive edits; preserve existing custom patterns and comments.
+Read `references/gitignore-patterns.md` for comprehensive per-stack patterns.
 
-**Always include:** OS artifacts (`.DS_Store`, `Thumbs.db`), editor artifacts (`.vscode/`, `.idea/`, `*.swp`), secrets (`.env`, `*.pem`, `*.key`)
-
-**Stack-specific** (use whichever apply):
-- Python: `__pycache__/`, `*.pyc`, `.venv/`, `.pytest_cache/`
-- Node/TS: `node_modules/`, `dist/`, `build/`, `.next/`, `*.tsbuildinfo`
-- Go: `/bin/`, `*.test`, `coverage.out`
-- .NET: `bin/`, `obj/`, `.vs/`
-- Rust: `/target/`
-- Java: `build/`, `.gradle/`, `target/`, `*.class`
-- General: `*.log`, `tmp/`, `*.tmp`, `coverage/`
+Generate a `.gitignore` tailored to the detected stack, or merge missing patterns into an existing one. Always include the **Universal** section; add only the stack-specific sections that apply. Prefer additive edits; preserve existing custom patterns and comments.
 
 ## Step 5: Create or update .gitattributes
 
