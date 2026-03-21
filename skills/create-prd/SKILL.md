@@ -1,29 +1,55 @@
 ---
 name: create-prd
-description: Create a PRD through user interview, codebase exploration, and module design, then submit as a GitHub issue / Azure DevOps work item / Local file. Use when user wants to create / write a PRD, create a product requirements document, or design a new feature.
+description: Create a PRD through user interview, codebase exploration, and module design, then submit as a GitHub issue, Azure DevOps work item, or local file. Use when the user wants to create or write a PRD, create a product requirements document, design a new feature, or capture requirements.
 ---
 
-This skill will be invoked when the user wants to create a PRD. You may skip steps if you don't consider them necessary.
+# Create PRD
 
-1. Ask the user for a long, detailed description of the problem they want to solve and any potential ideas for solutions.
+Guide the user from a problem statement to a fully-formed PRD, then submit it to their preferred destination.
 
-2. Explore the repo to verify their assertions and understand the current state of the codebase.
+**Skill workflow** — these skills chain naturally:
+`create-prd` → [`pre-mortem`](#) *(optional stress-test)* → [`plan-from-prd`](#) *(phased plan)* → [`prd-slice`](#) *(tracker work items)*
 
-3. Interview the user relentlessly about every aspect of this plan until you reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
+---
 
-4. Sketch out the major modules you will need to build or modify to complete the implementation. Actively look for opportunities to extract deep modules that can be tested in isolation.
+## Process
 
-A deep module (as opposed to a shallow module) is one which encapsulates a lot of functionality in a simple, testable interface which rarely changes.
+### 1. Gather the problem statement
 
-Check with the user that these modules match their expectations. Check with the user which modules they want tests written for.
+Ask the user for a detailed description of:
+- The problem they are trying to solve
+- Any ideas or constraints they already have in mind
 
-5. Once you have a complete understanding of the problem and solution, use the template <prd-template/> below to write the PRD. 
-The PRD should be submitted as a GitHub issue, Azure DevOps work item, or saved as a local file.
-ALWAYS ask the user where they want the PRD to be saved: Github, Azure DevOps, or locally. If GitHub or Azure DevOps, ask for the repo / project and any relevant labels or assignees.
-Run a subagent to submit the PRD to the correct location with the appropriate instruction and metadata:
-- If GitHub: submit as an issue to the correct repo with appropriate labels and assignees (using the `gh-cli` skill when available, `gh issue create` or the GitHub API)
-- If Azure DevOps: submit as a work item to the correct project with appropriate tags and assignees (using the `az-devops-cli` skill when available, `az boards work-item create` or the Azure DevOps API)
-- If Local file: save it in the `./prds/` folder with a descriptive name (e.g. `./prds/user-onboarding.md`)
+### 2. Explore the codebase
+
+Use a subagent to explore the repo and verify the user's assertions. Understand the current architecture, existing patterns, and potential integration points.
+
+### 3. Interview the user
+
+Relentlessly interview the user about every aspect of the plan until you reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
+
+> Tip: Invoke the `pre-mortem` skill for deeper design stress-testing before committing to decisions.
+
+### 4. Design modules *(optional — skip if the user wants a lightweight PRD)*
+
+Sketch the major modules to build or modify. Actively look for opportunities to extract **deep modules** — ones that encapsulate significant functionality behind a simple, stable, testable interface.
+
+Review with the user:
+- Do these modules match their expectations?
+- Which modules should have tests written for them?
+
+### 5. Write the PRD
+
+Use the `<prd-template>` below to write the PRD.
+
+### 6. Submit the PRD
+
+Ask the user where they want it saved: **GitHub**, **Azure DevOps**, or **local file**.
+
+Run a subagent to submit so you keep your main context clean:
+- **GitHub**: Use the `gh-cli` skill (`gh issue create`) with appropriate labels and assignees.
+- **Azure DevOps**: Use the `azure-devops-cli` skill (`az boards work-item create`) with appropriate tags and assignees.
+- **Local file**: Save to `./prds/<feature-name>.md`.
 
 <prd-template>
 

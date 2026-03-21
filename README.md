@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-4-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-7-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -34,6 +34,52 @@ cp path/to/code-skills/skills/setup-repo/SKILL.md .agents/skills/setup-repo/
 ---
 
 ## Skills
+
+### PRD Workflow
+
+Several skills chain together to take a feature idea all the way to tracked work items:
+
+```
+create-prd ──► pre-mortem (optional) ──► plan-from-prd ──► prd-slice
+   │                  │                        │                │
+Write the PRD   Stress-test         Local phased plan    Tracker issues
+               before coding       (./plans/*.md)     (AzDO / GH / Jira)
+```
+
+Each skill is independently useful — use any one in isolation or chain them in sequence.
+
+---
+
+### `create-prd`
+
+Capture a feature from scratch: interview the user, explore the codebase, design modules, then submit a structured PRD to GitHub Issues, Azure DevOps, or a local file.
+
+- **Interview-driven** — relentlessly walks the design tree to reach shared understanding
+- **Module design step** *(optional)* — surfaces deep, testable modules before writing the PRD
+- **Flexible output** — submits via `gh-cli` skill, `azure-devops-cli` skill, or saves to `./prds/`
+
+```
+skills/create-prd/SKILL.md
+```
+
+---
+
+### `plan-from-prd`
+
+Turn an approved PRD into a multi-phase local Markdown implementation plan using tracer-bullet vertical slices.
+
+- Identifies **durable architectural decisions** (routes, schema, key models) before slicing
+- Each phase is a thin end-to-end slice — demoable and verifiable on its own
+- Quizzes the user on granularity and dependencies before writing the file
+- Output: `./plans/<feature-name>.md`
+
+> For pushing slices directly to a tracker (GitHub / AzDO / Jira) use `prd-slice` instead.
+
+```
+skills/plan-from-prd/SKILL.md
+```
+
+---
 
 ### `setup-repo`
 
@@ -91,6 +137,29 @@ skills/prd-slice/references/jira.md           # stub — planned
 
 ---
 
+### `az-devops-cli`
+
+A comprehensive reference skill for managing Azure DevOps via the `az` CLI. Loaded by other skills (`create-prd`, `prd-slice`) when AzDO is the target tracker — also useful standalone for pipelines, repos, and org administration.
+
+Knowledge is split across focused reference files — the skill reads only what's needed for the current task:
+
+| Reference file | Domain |
+|----------------|--------|
+| `references/repos-and-prs.md` | Repos, branches, pull requests, branch policies |
+| `references/pipelines-and-builds.md` | Pipelines, builds, releases, artifacts |
+| `references/boards-and-iterations.md` | Work items, sprints, area paths |
+| `references/variables-and-agents.md` | Pipeline variables, variable groups, agent pools |
+| `references/org-and-security.md` | Projects, teams, users, permissions, wikis |
+| `references/advanced-usage.md` | Output formatting, JMESPath queries |
+| `references/workflows-and-patterns.md` | Automation scripts, best practices, error handling |
+
+```
+skills/az-devops-cli/SKILL.md
+skills/az-devops-cli/references/  # 7 reference files
+```
+
+---
+
 ### `pre-mortem`
 
 Stress-test a plan before writing a single line of code.
@@ -127,9 +196,13 @@ Runtime hook scripts in `.github/hooks/` (Copilot CLI) and `.claude/hooks/` (Cla
 
 ```
 skills/           # Published skills — source of truth
+├── az-devops-cli/
+├── create-prd/
+├── plan-from-prd/
+├── prd-slice/
+├── pre-mortem/
 ├── setup-repo/
-├── tool-guard/
-└── plan-groom/
+└── tool-guard/
 
 hooks/            # Canonical tool policies for this repo
 .github/hooks/    # Copilot CLI runtime hook outputs
