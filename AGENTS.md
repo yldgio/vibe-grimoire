@@ -11,11 +11,8 @@ in daily vibe coding — shareable, reusable, cross-agent primitives.
 - **No build step** — this repo is pure configuration
 
 ```
-.github/
-  extensions/       # Project-level Copilot skills (auto-loaded by agents)
-  copilot-instructions.md  # Global Copilot instructions (if added)
-skills/             # Curated skill definitions (SKILL.md per skill)
-hooks/              # Agent hook definitions
+skills/             # Published skills in skills/<skill-name>/SKILL.md
+hooks/              # Canonical hook definitions and policy artifacts
 agents/             # Custom agent definitions
 ```
 
@@ -30,12 +27,13 @@ git log --oneline -20          # Review recent commits
 ## Conventions
 
 - Every skill lives in its own folder: `skills/<skill-name>/SKILL.md`
-- Every hook lives in its own folder: `hooks/<hook-name>/README.md`
+- Every hook lives in its own folder: `hooks/<hook-name>/`, typically with `README.md` and any structured artifacts such as `policy.json`
 - Every agent lives in its own folder: `agents/<agent-name>/<agent-name>.agent.md`
 - Frontmatter (`name:`, `description:`) is required on every skill/agent file
 - Keep descriptions under 300 chars — they appear in search results
 - Filenames use `kebab-case`
-- Project-level skills go in `.github/extensions/` so all agents pick them up
+- Local runtime/user skills belong in `.agents/skills/` in the target environment, not in this published collection
+- Runtime-native hook outputs for target repos may live under `.github/hooks/` or `.opencode/plugins/`, but the published source of truth in this repo lives under `hooks/`
 
 ## Maintenance rules
 
