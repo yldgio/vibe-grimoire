@@ -1,5 +1,5 @@
 ---
-name: design-the-design
+name: plan-groom
 description: >-
   Relentlessly interrogate a user's plan or design until you reach shared understanding,
   walking every branch of the decision tree and resolving dependencies one-by-one. Use
