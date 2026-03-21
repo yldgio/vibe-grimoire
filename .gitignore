@@ -38,3 +38,4 @@ temp/
 .cache/
 skills-lock.json
 .agents/skills/setup-repo/
+.agents/skills/tool-guard/SKILL.md
