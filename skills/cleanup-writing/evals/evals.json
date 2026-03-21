@@ -1,0 +1,23 @@
+{
+  "skill_name": "cleanup-writing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Here's my README for a new CLI tool. It's a bit of a dump — I wrote it stream-of-consciousness and it needs proper structure and tighter prose.\n\n---\nYou can use this tool to convert videos. It supports mp4, avi, mov. I made it because ffmpeg is hard to use. Installation is easy just run npm install -g vidconv. So basically you just run vidconv input.mp4 output.avi and it works. There are also flags. --quality sets quality from 1-10. --fps sets the framerate. I plan to add more formats. If you find bugs open an issue. The source is MIT licensed. You need Node 18 or higher to run it.",
+      "expected_output": "The skill should propose a section breakdown (e.g. Overview, Installation, Usage, Options, Contributing, License), confirm with the user, then rewrite each section with clear headings, short paragraphs under 240 chars each, and a logical dependency order — Installation before Usage, Usage before Options.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Can you clean up this PR description? It's confusing and buries the important stuff.\n\n---\nThis PR changes a bunch of stuff. I fixed the thing where users were getting logged out randomly (turned out to be a race condition in the token refresh logic). I also refactored the auth module to use the new session store we set up last sprint. Oh and I added tests for both. The logout bug was caused by two concurrent refresh calls overwriting each other's token. The fix uses a mutex. Breaking changes: the session store interface changed — callers now pass a context object instead of a raw token string.",
+      "expected_output": "The skill should restructure the PR description so the breaking change is surfaced prominently (not buried at the end), the bug fix and its root cause are clearly explained, and the refactor is described separately. Paragraphs should be short and the most critical information — breaking changes — should appear early.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "My team wrote this design doc section and it's really hard to read. Please clean it up.\n\n---\nThe system will need to handle both synchronous and asynchronous processing modes. In the async case, jobs are placed on a queue. The queue is backed by Redis. Redis was chosen because it supports pub/sub and sorted sets which we need for priority queuing. Priority queuing is needed because some jobs are user-facing and need low latency while background jobs can wait. The sync path bypasses the queue entirely. Sync calls are used for real-time features like autocomplete. Autocomplete requires sub-100ms response times. The queue worker pool size is configurable.",
+      "expected_output": "The skill should identify that the doc jumps between layers (queue, Redis, priority, sync path, autocomplete) without a clear ordering. It should restructure so context flows logically: why two modes exist → sync path (simpler) → async path → queue implementation → Redis rationale → priority mechanism. Paragraphs should be tightened to under 240 chars each.",
+      "files": []
+    }
+  ]
+}

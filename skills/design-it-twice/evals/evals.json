@@ -1,0 +1,23 @@
+{
+  "skill_name": "design-it-twice",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I need to design a rate limiter module for our API gateway. It should support per-user and per-endpoint limits, and we need to be able to configure different limits for different tiers (free, pro, enterprise). The callers are our HTTP middleware handlers. We're on Node.js/TypeScript.",
+      "expected_output": "The skill should gather requirements, optionally explore the codebase, then spawn 3 sub-agents with the three constraint axes (minimize methods, maximize flexibility, optimize for common case). It should present 3 radically different interface designs — e.g. one might be a single check(key) method, another a fluent builder, another a middleware factory. The comparison should use prose and evaluate depth, simplicity, and ease of misuse. It should end with a synthesis question.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We're building a notification service that can send emails, push notifications, and SMS. Different parts of the app need to send notifications — the auth service, the billing service, and the activity feed. I can't decide whether to have one generic send() method or separate methods for each channel. Can you help me design it twice?",
+      "expected_output": "The skill should recognize the 'design it twice' trigger phrase and the explicit channel-vs-generic dilemma. It spawns 3 sub-agents producing genuinely different shapes — e.g. one with a single dispatch(notification) method, one with channel-specific methods (sendEmail, sendSMS, sendPush), one with a channel-agnostic builder pattern. The comparison should highlight depth (what's hidden), ease of adding a new channel, and how callers specify priority/fallback.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "How should I model a shopping cart? It needs to hold items, apply discount codes, calculate totals, and eventually be converted to an order. I'm not sure if it should be a class with methods, a plain object with functions, or something else entirely.",
+      "expected_output": "The skill should treat this as an interface design question. The 3 sub-agents produce radically different shapes: e.g. one OOP cart class with mutating methods, one immutable value-object approach with pure functions, one event-sourced command pattern. The skill compares them on depth, simplicity of the happy path, and how each handles the 'convert to order' operation. It explicitly does not implement internals.",
+      "files": []
+    }
+  ]
+}

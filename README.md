@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-9-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-11-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -223,6 +223,40 @@ skills/domain-language/evals/evals.json
 
 ---
 
+### `cleanup-writing`
+
+Edit and improve a piece of writing section by section — fixing information order, improving clarity, and tightening prose — then deliver the full revised document.
+
+- **Dependency-ordered structure** — checks that concepts are introduced before they are relied on; reorders sections that violate this
+- **Section confirmation** — presents the proposed structure to the user before rewriting anything
+- **240-char paragraph rule** — enforces short paragraphs to reduce cognitive load and keep readers moving
+- **Full-document output** — delivers the complete revised document so the user can read the whole as a continuous flow
+
+```
+skills/cleanup-writing/SKILL.md
+skills/cleanup-writing/evals/evals.json
+```
+
+---
+
+### `design-it-twice`
+
+Generate multiple radically different interface designs for a module in parallel, then compare and synthesize the best approach.
+
+Based on *A Philosophy of Software Design* — your first idea is unlikely to be your best. Three sub-agents each receive a different constraint axis (minimize methods / maximize flexibility / optimize for the common case), guaranteeing genuinely different shapes.
+
+- **Parallel sub-agent generation** — 3 designs produced simultaneously, not sequentially
+- **Codebase-aware** — explores sibling modules and naming conventions before designing
+- **Prose comparison** — trade-off analysis in prose, not tables, to force synthesis over checkbox thinking
+- **Synthesis step** — offers to combine the best elements into a hybrid design
+
+```
+skills/design-it-twice/SKILL.md
+skills/design-it-twice/evals/evals.json
+```
+
+---
+
 ## Hooks
 
 `hooks/tool-guard/policy.json` is the canonical tool policy for **this repo**. It demonstrates the tool-guard pattern:
@@ -239,7 +273,9 @@ Runtime hook scripts in `.github/hooks/` (Copilot CLI) and `.claude/hooks/` (Cla
 ```
 skills/           # Published skills — source of truth
 ├── az-devops-cli/
+├── cleanup-writing/
 ├── create-prd/
+├── design-it-twice/
 ├── domain-language/
 ├── plan-from-prd/
 ├── prd-slice/
