@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-11-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-12-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -257,6 +257,28 @@ skills/design-it-twice/evals/evals.json
 
 ---
 
+### `tdd`
+
+Build features and fix bugs using test-driven development — one red-green cycle at a time, always testing behavior through public interfaces.
+
+- **Codebase-first** — explores the existing test framework, file structure, and prior art before writing a single test
+- **Characterization tests** — when adding TDD to existing untested code, locks in current behavior first before touching anything
+- **Tracer bullet** — proves infrastructure (runner, imports, assertions) works with one test before building out the full suite
+- **Why-driven rules** — the four incremental-loop rules are explained with rationale, not just stated
+- **Behavior over implementation** — every step guards against the most common TDD failure mode: tests coupled to internal structure that break on refactors
+
+```
+skills/tdd/SKILL.md
+skills/tdd/tests.md            # good/bad test examples
+skills/tdd/mocking.md          # when and how to mock
+skills/tdd/interface-design.md # designing for testability
+skills/tdd/deep-modules.md     # small interface, deep implementation
+skills/tdd/refactoring.md      # refactor targets
+skills/tdd/evals/evals.json
+```
+
+---
+
 ## Hooks
 
 `hooks/tool-guard/policy.json` is the canonical tool policy for **this repo**. It demonstrates the tool-guard pattern:
@@ -282,6 +304,7 @@ skills/           # Published skills — source of truth
 ├── pre-mortem/
 ├── refactoring-plan/
 ├── setup-repo/
+├── tdd/
 └── tool-guard/
 
 hooks/            # Canonical tool policies for this repo

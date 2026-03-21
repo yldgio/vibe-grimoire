@@ -1,0 +1,23 @@
+{
+  "skill_name": "tdd",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm building a discount engine for an e-commerce platform in TypeScript. It needs to support percentage discounts, fixed-amount discounts, and buy-one-get-one (BOGO) deals. Rules can stack but total discount can't exceed the cart total. I want to use TDD to build this from scratch.",
+      "expected_output": "The skill should explore the codebase to identify the test framework (e.g. jest/vitest) and existing test patterns before planning. It should plan an interface that hides discount complexity behind a simple apply(cart, rules) surface. It should list behaviors to test (percentage discount, fixed discount, BOGO, stacking, cap at cart total) and get approval. It then writes ONE tracer bullet test first (e.g. percentage discount on a simple cart), implements only enough to pass, then proceeds one behavior at a time. It must not write all 5 tests upfront.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We have a UserService class that's been in production for 2 years with zero tests. It handles registration, login, password reset, and profile updates. We want to start practicing TDD on it but I'm scared to touch it without safety net. Where do we start?",
+      "expected_output": "The skill should recognize the 'existing code, no tests' scenario and recommend characterization tests first — tests that encode current behavior without changing it. It should explore the codebase to understand the existing code structure and dependencies. It should guide the user to write tests for the most critical paths (login, registration) using the public interface only, not mocking internal collaborators. It should advise getting the characterization suite green before adding any new behavior.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "My tests keep breaking every time I refactor. I renamed an internal method on my OrderProcessor class and 12 tests failed even though the behavior didn't change at all. Now my team is afraid to refactor anything. Help me fix this.",
+      "expected_output": "The skill should diagnose this as implementation-coupled tests and explain the root cause clearly. It should explore the existing test code to show specific examples of what's wrong (mocking internal methods, asserting on call counts, testing private state). It should guide the user to rewrite the broken tests to use the public interface only, with before/after examples. It should explain the 'test what the caller cares about' principle and why tests tied to internals become a refactoring tax.",
+      "files": []
+    }
+  ]
+}
