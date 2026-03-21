@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Skill request
+    url: https://github.com/yldgio/vibe-grimoire/issues/new?template=skill_request.md
+    about: Request a new skill or improvement
