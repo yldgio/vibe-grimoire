@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-8-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-9-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -186,6 +186,23 @@ skills/pre-mortem/SKILL.md
 
 ---
 
+### `refactoring-plan`
+
+Plan a safe, incremental refactor through user interview and codebase exploration, then submit it as a GitHub issue, Azure DevOps work item, or local file.
+
+- **Alternative strategies** — presents Strangler Fig, Extract-and-Delegate, Parallel Implementation, and other patterns so you choose the right approach for your risk tolerance
+- **Thorough interview** — resolves scope, backwards compatibility, blast radius, rollback, and test ownership before a single line changes
+- **Test-coverage gate** — checks coverage in the affected area and recommends locking in behavior with tests as the first commit if it's thin
+- **Tiny-commit plan** — follows Martin Fowler's advice: every commit leaves the app working and is independently revertable
+- **Flexible output** — submits via `gh-cli` skill, `az-devops-cli` skill, or saves to `./plans/`
+
+```
+skills/refactoring-plan/SKILL.md
+skills/refactoring-plan/evals/evals.json
+```
+
+---
+
 ### `domain-language`
 
 Build and maintain a shared glossary so everyone on the team — human and AI — uses the same words for the same things.
@@ -227,6 +244,7 @@ skills/           # Published skills — source of truth
 ├── plan-from-prd/
 ├── prd-slice/
 ├── pre-mortem/
+├── refactoring-plan/
 ├── setup-repo/
 └── tool-guard/
 

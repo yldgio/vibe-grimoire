@@ -1,0 +1,23 @@
+{
+  "skill_name": "refactoring-plan",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a 2,000-line God class called `OrderService` in our Node.js monolith. It handles pricing, inventory checks, payment processing, and email notifications all in one place. It's become impossible to test and every PR causes merge conflicts. I want to break it up but I'm scared of breaking production — we have almost no unit tests on it. Can you help me plan this refactor?",
+      "expected_output": "The skill should open a thorough interview, explore the codebase via subagent, present splitting strategies (strangler fig, extract-and-delegate, etc.), interview the user about backwards compat and rollback, highlight the test coverage gap and recommend locking in behavior with tests first, then produce a plan broken into tiny safe commits submitted to the user's preferred destination.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We renamed our core domain concept from 'Account' to 'Workspace' about a year ago in the UI and API, but the database tables and internal service layer still use 'account' everywhere. It's confusing new engineers and causing bugs when people mix up the two. I want to do the rename properly — models, DB columns, API fields, the works — across a Python/Django backend and a React frontend. How do we plan this safely?",
+      "expected_output": "The skill should explore the codebase blast radius, surface that this is an incremental rename scenario, present the parallel-alias approach vs big-bang, interview about migration strategy for DB columns (backwards-compatible migration vs multi-step), downstream API consumers, and feature flags. It should produce a commit-by-commit plan that keeps the app working throughout.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Our authentication logic is copy-pasted across 6 different microservices because it was 'quick' each time. Now every time we need to update a JWT claim or rotate a secret we have to touch all 6 repos and it's a nightmare. I want to extract this into a shared auth library. We're on a TypeScript/Node stack. The services are owned by 3 different teams.",
+      "expected_output": "The skill should explore the duplicated auth logic across services, surface the cross-team coordination dimension, discuss packaging strategy (private npm package vs monorepo lib), present strangler fig migration per service vs coordinated cut-over, interview about versioning/semver strategy, backwards compat, who owns the new lib, and rollout order. The resulting plan should include the library creation commits and per-service migration commits as separate, safe increments.",
+      "files": []
+    }
+  ]
+}
