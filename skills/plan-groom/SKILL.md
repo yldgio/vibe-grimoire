@@ -12,4 +12,4 @@ Interview me relentlessly about every aspect of a plan or idea until we reach a 
 
 If a question can be answered by exploring the codebase, explore the codebase instead. always use subagents to explore the codebase.
 Never apply changes to the codebase directly from this skill. 
-Always output a plan or design and offer to save it to a file named `plan-groom.md` in the current working directory.
+Always output a plan or design and offer to save it to a file named `{project_name}-design.md` in the current working directory.
