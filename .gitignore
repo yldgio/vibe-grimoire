@@ -39,3 +39,6 @@ temp/
 skills-lock.json
 .agents/skills/setup-repo/
 .agents/skills/tool-guard/SKILL.md
+
+# --- OpenCode plugin SDK (vendored locally, resolved by OpenCode at runtime) ---
+package/
