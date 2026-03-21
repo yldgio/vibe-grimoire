@@ -37,3 +37,4 @@ temp/
 *.tmp
 .cache/
 skills-lock.json
+.agents/skills/setup-repo/
