@@ -4,9 +4,10 @@
     "preToolUse": [
       {
         "type": "command",
-        "powershell": "./pre-tool-guard.ps1",
-        "cwd": ".github/hooks/scripts",
-        "timeoutSec": 10
+        "bash": "./scripts/pre-tool-guard.sh",
+        "powershell": "./scripts/pre-tool-guard.ps1",
+        "cwd": ".github/hooks",
+        "timeoutSec": 15
       }
     ]
   }

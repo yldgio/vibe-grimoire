@@ -1,42 +1,34 @@
 $ErrorActionPreference = 'Stop'
 
-function Get-ToolCommand([object]$ToolArgs) {
-    foreach ($prop in @('command','bash','powershell','input','text')) {
-        $v = $ToolArgs.PSObject.Properties[$prop]
-        if ($null -ne $v -and $v.Value -is [string] -and $v.Value.Trim().Length -gt 0) { return $v.Value }
-    }
-    return $null
-}
-
 $rawInput = [Console]::In.ReadToEnd()
 if ([string]::IsNullOrWhiteSpace($rawInput)) { exit 0 }
 
-$payload  = $rawInput | ConvertFrom-Json
-$toolName = [string]$payload.toolName
-if ($toolName -notin @('bash','powershell','shell','run_terminal_cmd')) { exit 0 }
+$payload = $rawInput | ConvertFrom-Json
+if ($payload.tool_name -ne 'Bash') { exit 0 }
 
-# toolArgs is a JSON string — parse it
-$toolArgsRaw = [string]$payload.toolArgs
-if ([string]::IsNullOrWhiteSpace($toolArgsRaw)) { exit 0 }
-try { $toolArgs = $toolArgsRaw | ConvertFrom-Json } catch { exit 0 }
-
-$command = Get-ToolCommand $toolArgs
+# tool_input is already a parsed object
+$command = $payload.tool_input?.command
 if ([string]::IsNullOrWhiteSpace($command)) { exit 0 }
 $norm = $command.ToLowerInvariant()
 
-$repoRoot   = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
+$repoRoot   = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $policyPath = Join-Path $repoRoot 'hooks\tool-guard\policy.json'
 if (-not (Test-Path $policyPath)) { exit 0 }
 $policy = Get-Content $policyPath -Raw | ConvertFrom-Json
 
 function Deny([string]$reason) {
-    @{ permissionDecision = 'deny'; permissionDecisionReason = $reason } | ConvertTo-Json -Compress
+    @{
+        hookSpecificOutput = @{
+            hookEventName            = 'PreToolUse'
+            permissionDecision       = 'deny'
+            permissionDecisionReason = $reason
+        }
+    } | ConvertTo-Json -Depth 3 -Compress
     exit 0
 }
 
 foreach ($rule in $policy.extra_banned_commands) {
-    $pattern = ([string]$rule.pattern).ToLowerInvariant()
-    if (-not $norm.Contains($pattern)) { continue }
+    if (-not $norm.Contains(([string]$rule.pattern).ToLowerInvariant())) { continue }
     if ([string]$rule.mode -eq 'warn') { Deny "⚠️ Advisory: $([string]$rule.reason)" }
     else { Deny ([string]$rule.reason) }
 }
