@@ -1,0 +1,54 @@
+{
+  "skill_name": "domain-language",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We've been designing a fintech payments API for a while now. Here's a summary of where the conversation landed:\n\n- The system lets merchants accept payments from their customers.\n- A merchant has a 'wallet' where their money lands when a customer pays.\n- Actually wait, we called it an 'account' in the API routes: POST /accounts/:id/credit\n- When a customer pays, do we create a 'transaction' or a 'payment'? We said 'payment' in the PRD but the DB schema has a 'transactions' table.\n- There's also a 'transfer' — that's when a merchant moves money from their wallet to their bank account. Or is it a 'payout'? The docs use both.\n- 'Balance' is the current amount in the wallet/account.\n- A 'charge' is what we show the customer on their statement. Wait, is a charge the same as a payment? I think a payment is the act of paying, and a charge is the record on the customer side.\n- 'Settlement' — we haven't defined this yet but it came up.\n\nPlease extract the domain language from this conversation and save it to DOMAIN_LANGUAGE.md.",
+      "expected_output": "A DOMAIN_LANGUAGE.md file with canonical terms for the fintech domain, resolving the wallet/account, payment/transaction/charge, and transfer/payout synonym clashes. Should flag these ambiguities explicitly and propose canonical terms.",
+      "files": [],
+      "expectations": [
+        "DOMAIN_LANGUAGE.md is created in the working directory",
+        "The file contains a table with canonical term definitions",
+        "The synonym clash between 'wallet' and 'account' is flagged or resolved",
+        "The synonym clash between 'payment', 'transaction', and 'charge' is flagged or resolved",
+        "The synonym clash between 'transfer' and 'payout' is flagged or resolved",
+        "Each canonical term has a one-sentence definition",
+        "A 'Flagged ambiguities' section (or equivalent) calls out the naming conflicts",
+        "An example dialogue demonstrates the terms being used in context"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "We're building a platform for mental health practices. Here's where we've got to:\n\n- The people receiving care: sometimes we call them 'patients', sometimes 'clients', sometimes 'service users'. The clinical team prefers 'patient', the admin team says 'client', and the product spec says 'service user'.\n- The people providing care: 'therapists', 'practitioners', 'clinicians', or 'providers' — we've used all four.\n- A 'session' is when a therapist meets with a patient. Or is it an 'appointment'? The calendar feature calls it an appointment, but the notes feature calls it a session.\n- 'Notes' are what the therapist writes after a session.\n- A 'referral' is when a GP sends a patient to the platform.\n- 'Discharge' is when the patient's care episode ends.\n- We need to track the 'care plan' — a set of goals and treatment steps for a patient.\n- Payments: the patient doesn't always pay. Sometimes an insurance company pays. Sometimes an employer pays through an EAP (employee assistance programme). The entity paying is... the 'payer'? The 'funder'?\n\nCan you extract the domain language and create DOMAIN_LANGUAGE.md?",
+      "expected_output": "A DOMAIN_LANGUAGE.md that resolves the patient/client/service-user and therapist/practitioner/clinician/provider conflicts, clarifies session vs appointment, and defines care-domain terms like referral, discharge, care plan, and payer/funder.",
+      "files": [],
+      "expectations": [
+        "DOMAIN_LANGUAGE.md is created",
+        "The patient/client/service-user conflict is resolved with a single canonical term",
+        "The therapist/practitioner/clinician/provider conflict is resolved with a single canonical term",
+        "Session vs appointment ambiguity is addressed",
+        "At least 6 domain terms are defined (patient/client, therapist/practitioner, session/appointment, notes, referral, discharge)",
+        "Aliases to avoid are listed for conflicting terms",
+        "An example dialogue is included showing the terms in use",
+        "Terms are grouped into logical sections (e.g. People, Care Events, Financials)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "We're designing a B2B e-commerce marketplace. During our discussion we've been using some terms pretty loosely:\n\n- There's a 'seller' — a business that lists products on the marketplace.\n- There's a 'buyer' — a business that purchases from sellers.\n- A 'listing' is a product a seller puts on the marketplace. But in the search UI we call it a 'product'. And in the order confirmation we call it an 'item'.\n- An 'order' is when a buyer purchases one or more listings/products/items from one seller. But what if the buyer buys from two sellers at once? Is that one order or two orders? We haven't decided.\n- 'Inventory' — the seller's stock. 'Stock level' appears in the API. Are these the same thing?\n- 'Quote' — a seller can send a price quote to a buyer before confirming a sale. We haven't really named what happens when the buyer accepts: is it a 'purchase order'? A 'confirmed order'? Just an 'order'?\n- 'Catalogue' — the set of all listings a seller has. We also said 'store' a few times.\n- We haven't given a name to the marketplace's cut of each transaction. 'Fee'? 'Commission'? 'Platform fee'?\n\nPlease extract the domain language and write it to DOMAIN_LANGUAGE.md. Bonus: flag any concepts we haven't named yet.",
+      "expected_output": "A DOMAIN_LANGUAGE.md that resolves listing/product/item, inventory/stock, catalogue/store conflicts; picks canonical terms; flags the unnamed concepts (marketplace commission, multi-seller order question); and includes a useful example dialogue.",
+      "files": [],
+      "expectations": [
+        "DOMAIN_LANGUAGE.md is created",
+        "The listing/product/item synonym clash is resolved with one canonical term",
+        "The inventory/stock synonym clash is addressed",
+        "The catalogue/store synonym clash is addressed",
+        "The marketplace fee/commission concept is either named or flagged as unnamed",
+        "The multi-seller order question is surfaced (even if left as an open question)",
+        "Each term has a one-sentence definition",
+        "Aliases to avoid are listed",
+        "An example dialogue is present"
+      ]
+    }
+  ]
+}

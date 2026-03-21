@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-7-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-8-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -186,6 +186,26 @@ skills/pre-mortem/SKILL.md
 
 ---
 
+### `domain-language`
+
+Build and maintain a shared glossary so everyone on the team — human and AI — uses the same words for the same things.
+
+Extracts terms, roles, and implicit concepts from conversation history and codebase scanning, confirms the list with the user, then writes (or merges into) a `DOMAIN_LANGUAGE.md` at the repo root.
+
+- **Codebase-aware** — scans existing code to align glossary terms with actual naming
+- **Confirmation step** — quizzes the user with a mini-dialogue before writing anything
+- **Idempotent** — detects an existing glossary file and switches to merge/extend mode
+- **Edge cases handled** — thin conversations (< 3 terms) are flagged rather than forced
+
+> Related: `create-prd` (references `DOMAIN_LANGUAGE.md` for naming), `domain-language` can be run at any point in the PRD workflow to lock in terminology.
+
+```
+skills/domain-language/SKILL.md
+skills/domain-language/evals/evals.json
+```
+
+---
+
 ## Hooks
 
 `hooks/tool-guard/policy.json` is the canonical tool policy for **this repo**. It demonstrates the tool-guard pattern:
@@ -203,6 +223,7 @@ Runtime hook scripts in `.github/hooks/` (Copilot CLI) and `.claude/hooks/` (Cla
 skills/           # Published skills — source of truth
 ├── az-devops-cli/
 ├── create-prd/
+├── domain-language/
 ├── plan-from-prd/
 ├── prd-slice/
 ├── pre-mortem/
