@@ -11,6 +11,10 @@ description: >-
 
 This skill sets up or repairs a repository. The same rules apply whether the project is new or already initialized — inspect first, then apply each step.
 
+## Scope
+
+This skill delivers repo scaffolding only: git initialization, `.gitignore`, `.gitattributes`, `AGENTS.md`, hooks, and skill installation. The summary in Step 9 is the final deliverable. Once it is delivered, this skill's work is complete — what happens next is the user's decision.
+
 ## Step 1: Interview the user
 
 Collect before touching any files:
@@ -139,4 +143,6 @@ If a skill is already installed and current, leave it. Refresh only if stale or 
 ✅ Skills added/refreshed: conventional-commit, gh-cli
 ```
 
-Note anything that could not be completed and what action is needed next.
+Note anything that could not be completed and what action the user may want to take next.
+
+**Your work is complete.** Deliver this summary and return control to the user. The next step is theirs to decide.
