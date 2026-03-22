@@ -88,6 +88,7 @@ Read the reference file(s) for each selected runtime and generate all files list
 - Mark `.sh` files executable with `chmod +x`
 - If runtime config files already exist: merge — do not overwrite unrelated content
 - Keep tool policy out of `AGENTS.md`
+- **PowerShell emoji**: do NOT embed literal `⚠️` in `.ps1` files — use `$([char]0x26A0)$([char]0xFE0F)` and add `[Console]::OutputEncoding = [System.Text.Encoding]::UTF8` at the top; `ConvertTo-Json` must use `-EscapeHandling EscapeNonAscii` (PS 7.1+). The reference templates already do this.
 
 ## Review checklist
 

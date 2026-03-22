@@ -94,6 +94,9 @@ Run `chmod +x .claude/hooks/pre-tool-guard.sh` after creating.
 
 ```powershell
 $ErrorActionPreference = 'Stop'
+# Force UTF-8 output so non-ASCII characters survive ConvertTo-Json on all PS versions
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
 
 $rawInput = [Console]::In.ReadToEnd()
 if ([string]::IsNullOrWhiteSpace($rawInput)) { exit 0 }
@@ -118,13 +121,17 @@ function Deny([string]$reason) {
             permissionDecision       = 'deny'
             permissionDecisionReason = $reason
         }
-    } | ConvertTo-Json -Depth 3 -Compress
+    # -EscapeHandling EscapeNonAscii encodes emoji as \uXXXX in JSON output (PS 7.1+)
+    } | ConvertTo-Json -Depth 3 -Compress -EscapeHandling EscapeNonAscii
     exit 0
 }
 
+# Use char codes for ⚠️ (U+26A0 U+FE0F) — avoids source-file encoding issues on Windows
+$warn = "$([char]0x26A0)$([char]0xFE0F)"
+
 foreach ($rule in $policy.extra_banned_commands) {
     if (-not $norm.Contains(([string]$rule.pattern).ToLowerInvariant())) { continue }
-    if ([string]$rule.mode -eq 'warn') { Deny "⚠️ Advisory: $([string]$rule.reason)" }
+    if ([string]$rule.mode -eq 'warn') { Deny "$warn Advisory: $([string]$rule.reason)" }
     else { Deny ([string]$rule.reason) }
 }
 
@@ -134,7 +141,7 @@ foreach ($prop in $policy.categories.PSObject.Properties) {
     $reason = [string]$cat.reason
     foreach ($pattern in $cat.blocked) {
         if (-not $norm.Contains($pattern.ToLowerInvariant())) { continue }
-        if ($mode -eq 'warn') { Deny "⚠️ Advisory: $reason" }
+        if ($mode -eq 'warn') { Deny "$warn Advisory: $reason" }
         else { Deny $reason }
     }
 }

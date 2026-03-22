@@ -125,6 +125,8 @@ Define your preferred package manager, banned commands, and strictness level onc
 
 All scripts read `policy.json` at runtime — no hardcoded rules.
 
+> **Note (Windows / PowerShell):** The generated `.ps1` scripts use `$([char]0x26A0)$([char]0xFE0F)` for the `⚠️` advisory prefix and set `[Console]::OutputEncoding = UTF8` with `ConvertTo-Json -EscapeHandling EscapeNonAscii` (PS 7.1+) to avoid emoji rendering as `??` in some console environments. The templates already include this fix.
+
 ```
 skills/tool-guard/SKILL.md
 skills/tool-guard/references/copilot-cli.md
