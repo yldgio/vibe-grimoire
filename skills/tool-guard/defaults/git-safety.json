@@ -1,0 +1,60 @@
+{
+  "_preset": "git-safety",
+  "_description": "Blocks git commands that destroy shared history or silently discard work. Based on Matt Pocock's git-guardrails pattern. Deny rules for specific force variants must stay before the broader bare-push warn rule. Note: 'git push --force' is a substring of '--force-with-lease', so --force-with-lease is also denied by this preset — intended, since AI agents should not force-push in any form.",
+  "extra_banned_commands": [
+    {
+      "pattern": "git push --force",
+      "match": "contains",
+      "mode": "deny",
+      "reason": "Force push rewrites shared history and is blocked in all forms, including --force-with-lease. Commit to a branch and open a PR instead."
+    },
+    {
+      "pattern": "git push -f",
+      "match": "contains",
+      "mode": "deny",
+      "reason": "Force push rewrites shared history and is blocked in all forms. Commit to a branch and open a PR instead."
+    },
+    {
+      "pattern": "git reset --hard",
+      "match": "contains",
+      "mode": "deny",
+      "reason": "Hard reset permanently discards local commits and unstaged changes."
+    },
+    {
+      "pattern": "git clean -f",
+      "match": "contains",
+      "mode": "deny",
+      "reason": "Permanently deletes untracked files. Use git status to review first."
+    },
+    {
+      "pattern": "git clean -fd",
+      "match": "contains",
+      "mode": "deny",
+      "reason": "Permanently deletes untracked files and directories."
+    },
+    {
+      "pattern": "git push",
+      "match": "contains",
+      "mode": "warn",
+      "reason": "Advisory: pushing from an AI-assisted session. Verify changes are intended."
+    },
+    {
+      "pattern": "git branch -D",
+      "match": "contains",
+      "mode": "warn",
+      "reason": "Advisory: force-deleting a branch. Ensure it has been merged or is no longer needed."
+    },
+    {
+      "pattern": "git checkout .",
+      "match": "contains",
+      "mode": "warn",
+      "reason": "Advisory: discarding all unstaged changes. This cannot be undone."
+    },
+    {
+      "pattern": "git restore .",
+      "match": "contains",
+      "mode": "warn",
+      "reason": "Advisory: discarding all unstaged changes. This cannot be undone."
+    }
+  ]
+}

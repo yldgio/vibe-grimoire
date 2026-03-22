@@ -6,6 +6,9 @@ description: >-
   when the user asks to "create a hook", "enforce pnpm not npm", "block banned commands",
   "generate Copilot hooks", or "generate OpenCode plugin enforcement"; and whenever setup
   should move operational tool policy out of AGENTS.md and into hooks.
+  Also use for: "add git safety guards", "block git push force", "block rm -rf",
+  "prevent dangerous deletes", "add git guardrails", "add default tool guards",
+  "protect against destructive commands", or "apply default hooks".
 ---
 
 # Tool Guard
@@ -27,6 +30,22 @@ Load the relevant file(s) for the selected runtimes before generating:
 Each reference file contains the complete file list, protocol notes, and copy-paste templates for that runtime.
 
 ---
+
+## Step 0: Offer default presets (optional but recommended)
+
+Before collecting custom inputs, offer to apply one or both default presets.
+Read the relevant file(s) from `defaults/` and merge their `extra_banned_commands`
+into the project `policy.json`. Presets are composable — apply any combination.
+
+| Preset | File | What it covers |
+|--------|------|----------------|
+| Git safety | `defaults/git-safety.json` | Blocks force-push, reset --hard, clean -f; warns on bare push, branch -D, checkout/restore . |
+| Destructive file ops | `defaults/destructive-ops.json` | Blocks rm -rf variants; warns on mv with .. or absolute path; includes PowerShell equivalents |
+
+**Merge rule:** append preset entries to `extra_banned_commands[]` in `policy.json`. If a
+conflicting pattern already exists, keep the stricter mode (`deny` beats `warn`). After
+merging git-safety, ensure deny rules for specific force variants (`git push --force`,
+`git push -f`) appear before the broader warn rule for bare `git push` — reorder if needed.
 
 ## Step 1: Collect inputs
 

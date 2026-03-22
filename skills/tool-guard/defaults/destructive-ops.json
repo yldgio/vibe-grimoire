@@ -1,0 +1,48 @@
+{
+  "_preset": "destructive-ops",
+  "_description": "Blocks rm -rf and warns on mv commands that appear to involve paths outside the current directory. PowerShell equivalents (Remove-Item, Move-Item) included. Known limitations with substring matching: (1) 'mv file ../backup' is NOT caught (mv .. only fires when .. is the source, e.g. 'mv ../file .'); (2) 'mv file /tmp' is NOT caught (mv / only fires when / is the source); (3) env-var-expanded paths like $HOME are not detected. These are documented as acceptable given the matcher's constraints.",
+  "extra_banned_commands": [
+    {
+      "pattern": "rm -rf",
+      "match": "contains",
+      "mode": "deny",
+      "reason": "Recursive force-delete is irreversible. Specify the exact path instead."
+    },
+    {
+      "pattern": "rm -fr",
+      "match": "contains",
+      "mode": "deny",
+      "reason": "Recursive force-delete is irreversible. Specify the exact path instead."
+    },
+    {
+      "pattern": "rm -r -f",
+      "match": "contains",
+      "mode": "deny",
+      "reason": "Recursive force-delete is irreversible. Specify the exact path instead."
+    },
+    {
+      "pattern": "remove-item",
+      "match": "contains",
+      "mode": "warn",
+      "reason": "Advisory: PowerShell Remove-Item detected. Verify you are not using -Recurse -Force on an unintended path."
+    },
+    {
+      "pattern": "mv ..",
+      "match": "contains",
+      "mode": "warn",
+      "reason": "Advisory: mv with .. in arguments may move files outside the project directory."
+    },
+    {
+      "pattern": "mv /",
+      "match": "contains",
+      "mode": "warn",
+      "reason": "Advisory: mv to an absolute path may move files outside the project directory."
+    },
+    {
+      "pattern": "move-item",
+      "match": "contains",
+      "mode": "warn",
+      "reason": "Advisory: PowerShell Move-Item detected. Verify destination is within the project directory."
+    }
+  ]
+}
