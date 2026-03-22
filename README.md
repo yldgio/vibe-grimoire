@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-12-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-14-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -61,6 +61,22 @@ Write the PRD   Stress-test         Local phased plan    Tracker issues
 ```
 
 Each skill is independently useful — use any one in isolation or chain them in sequence.
+
+---
+
+### Bug Workflow
+
+Two skills cover the full bug lifecycle — from raw symptom to tracked, actionable issue:
+
+```
+triage-bug ──────────────────────────────────────────► report-issue
+     │                                                       │
+ Investigate codebase,                             File structured issue
+ find root cause,                                  in GitHub / AzDO / Jira
+ design TDD fix plan                               (also usable standalone)
+```
+
+`triage-bug` calls `report-issue` automatically at the end. Use `report-issue` directly when you already know the problem and just need to log it.
 
 ---
 
@@ -259,6 +275,38 @@ skills/design-it-twice/evals/evals.json
 
 ---
 
+### `report-issue`
+
+Create a well-structured issue in the appropriate tracking system (GitHub, Azure DevOps, Jira) — whether you're filing a fresh bug report or capturing analysis from `triage-bug`.
+
+- **Context-aware** — if called after `triage-bug`, automatically includes root cause analysis and TDD fix plan in the issue body
+- **Tracking system detection** — infers GitHub / AzDO / Jira from project config; asks if ambiguous
+- **Graceful fallback** — if no CLI is available, produces a fully-formatted, copyable issue body
+- **Metadata guidance** — assigns type, priority, and labels consistent with project conventions
+- **Quality-first** — title, steps-to-reproduce, expected vs actual, and acceptance criteria in every issue
+
+```
+skills/report-issue/SKILL.md
+```
+
+---
+
+### `triage-bug`
+
+Investigate a bug by tracing its root cause through the codebase, then produce a TDD fix plan and file it as a tracked issue.
+
+- **Parallel investigation** — launches subagents for code-path tracing, git history, and pattern comparison simultaneously
+- **Root cause, not symptoms** — surfaces the mechanism of failure, not just where it crashed
+- **Confidence levels** — honest about uncertainty when investigation is incomplete
+- **Durable fix plans** — RED-GREEN cycles describe behaviors and contracts, not file paths or line numbers; plans survive major refactors
+- **Integrated handoff** — calls `report-issue` to create the issue; you end up with a URL, a one-line root cause, and a ready-to-execute TDD plan
+
+```
+skills/triage-bug/SKILL.md
+```
+
+---
+
 ### `tdd`
 
 Build features and fix bugs using test-driven development — one red-green cycle at a time, always testing behavior through public interfaces.
@@ -305,9 +353,11 @@ skills/           # Published skills — source of truth
 ├── prd-slice/
 ├── pre-mortem/
 ├── refactoring-plan/
+├── report-issue/
 ├── setup-repo/
 ├── tdd/
-└── tool-guard/
+├── tool-guard/
+└── triage-bug/
 
 hooks/            # Canonical tool policies for this repo
 .github/hooks/    # Copilot CLI runtime hook outputs
