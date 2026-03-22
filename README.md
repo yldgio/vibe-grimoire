@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-14-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-15-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -77,6 +77,23 @@ triage-bug ───────────────────────
 ```
 
 `triage-bug` calls `report-issue` automatically at the end. Use `report-issue` directly when you already know the problem and just need to log it.
+
+---
+
+### `adr`
+
+Capture significant architectural choices as durable, human-readable records that explain *why* the codebase is shaped the way it is.
+
+- **Decision-first workflow** — extracts context, problem, and trade-offs from conversation; confirms draft before saving
+- **Existing ADR awareness** — checks the `docs/adr/` directory to determine the next sequential number and identify related or superseded decisions
+- **Honest trade-offs** — template enforces both positive *and* negative consequences; an ADR with only upsides is flagged as incomplete
+- **Rejection rationale for alternatives** — explains why each alternative was not chosen, which is the most valuable part for future readers
+- **Optional sections** — `Alternatives Considered`, `Implementation Notes`, and `References` are included only when they add value
+- **Status lifecycle** — guides Proposed → Accepted → Superseded transitions with clear semantics
+
+```
+skills/adr/SKILL.md
+```
 
 ---
 
@@ -344,6 +361,7 @@ Runtime hook scripts in `.github/hooks/` (Copilot CLI) and `.claude/hooks/` (Cla
 
 ```
 skills/           # Published skills — source of truth
+├── adr/
 ├── az-devops-cli/
 ├── cleanup-writing/
 ├── create-prd/
