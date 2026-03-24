@@ -1,0 +1,23 @@
+{
+  "skill_name": "data-normalization",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We integrate with three APIs — Stripe (Unix timestamps in seconds), Salesforce (ISO strings without timezone, server is US/Eastern), and a legacy MySQL DB (DATETIME in server-local time, server is Europe/Rome). Define our canonical date/time format and generate TypeScript adapter functions for each source.",
+      "expected_output": "Skill should ask about target language (TypeScript confirmed), propose ISO 8601 with explicit UTC offset as canonical, produce a CANONICAL_DATA_MODEL.md covering the date/time type rule, generate three typed TypeScript adapter functions (one per source) with correct transformation logic, flag the Salesforce and MySQL sources as lossy due to missing timezone info, and offer to file an ADR.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our payment service receives monetary amounts from three vendors in different formats: locale-formatted strings like '1.234,56' (European locale), IEEE 754 floats like 1234.56, and integer cents like 123456. We use Python. Define a canonical money representation and generate validators for each vendor format.",
+      "expected_output": "Skill should propose integer minor units as canonical money representation (with explicit currency code), document the type rule in CANONICAL_DATA_MODEL.md, generate Python validators that reject floats as canonical storage and parse each vendor format safely (locale string with known separator, float with rounding warning, integer passthrough), and flag the float source as lossy if the source may have more than 2 decimal places.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I'm starting a new Node.js service that will consume events from Kafka (JSON), a REST API, and a PostgreSQL database. I have no existing schema conventions. Help me define a canonical data model document for this service covering all primitive types.",
+      "expected_output": "Skill should walk through Step 1 questions (sources confirmed, Node.js/TypeScript as target, no existing conventions), then produce a comprehensive CANONICAL_DATA_MODEL.md covering all primitive types (dates, strings, decimals, identifiers, enums, booleans, null/absent), present the draft for user confirmation before saving, and offer to generate mapping tables for the three named sources even though specific field formats were not given.",
+      "files": []
+    }
+  ]
+}
