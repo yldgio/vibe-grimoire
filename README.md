@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-16-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-17-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -221,6 +221,26 @@ skills/pre-mortem/SKILL.md
 
 ---
 
+### `techdebt`
+
+Audit a codebase for technical debt: find and remove duplicated code, dead code, god objects, overly complex functions, and inconsistent patterns — prioritized by impact, executed with the smallest safe changes possible.
+
+- **7 debt categories** — duplication, dead code, god objects, deep nesting, magic values, inconsistent patterns, overly complex functions
+- **Prioritized inventory** — groups findings by severity (🔴 Critical / 🟡 Moderate / 🟢 Minor) before touching anything
+- **Duplication-aware consolidation** — identifies the canonical version, checks whether copies have diverged, reconciles differences before merging
+- **Safe dead-code deletion** — verifies code is truly unreachable (checks dynamic imports, string-based lookups) before removing
+- **Scope guarantee** — delivers a cleanup summary and returns control; does not drift into architectural refactors (those belong in `refactoring-plan`)
+
+**Skill workflow** — chains naturally with:
+`refactoring-plan` *(plan the larger structural changes)* → `techdebt` *(execute the cleanup)* → `tdd` *(lock in behavior with tests before removing debt)*
+
+```
+skills/techdebt/SKILL.md
+skills/techdebt/evals/evals.json
+```
+
+---
+
 ### `refactoring-plan`
 
 Plan a safe, incremental refactor through user interview and codebase exploration, then submit it as a GitHub issue, Azure DevOps work item, or local file.
@@ -398,6 +418,7 @@ skills/           # Published skills — source of truth
 ├── report-issue/
 ├── setup-repo/
 ├── tdd/
+├── techdebt/
 ├── tool-guard/
 └── triage-bug/
 

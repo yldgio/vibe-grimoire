@@ -1,0 +1,47 @@
+{
+  "skill_name": "techdebt",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Hey, I'm working on a Node.js Express API and I keep noticing we have like 4 or 5 different places where we validate email addresses — each one is slightly different. Some use a regex, one uses a library. Can you do a tech debt audit on the src/validators directory and consolidate everything?",
+      "expected_output": "The skill explores the validators directory, identifies all duplicated email validation implementations, explains which differ and how, proposes a single canonical implementation, replaces all callsites, and deletes the duplicates. Ends with a summary of what was changed.",
+      "files": [],
+      "expectations": [
+        "The response identifies multiple duplicate email validation implementations across different files",
+        "The response checks whether the duplicates have diverged (i.e., behave differently from each other)",
+        "The response identifies or proposes a canonical implementation to consolidate around",
+        "The response shows or describes the before/after of the consolidation",
+        "The response replaces or describes replacing callsites with the canonical version before deleting duplicates",
+        "The response ends with a cleanup summary listing what was deleted/consolidated"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Our repo has gotten pretty messy. We haven't cleaned it up in like 6 months and there's a lot of dead code — old feature flags that were supposed to be temporary, commented-out functions, exports that nothing uses anymore. Can you do a full dead code sweep on the src/ folder?",
+      "expected_output": "The skill scans for unused exports, unreachable branches tied to stale flags, commented-out code blocks, and unread variables. It groups findings by risk/confidence, presents them to the user, then removes confirmed dead code with explanations for any that were flagged but not deleted.",
+      "files": [],
+      "expectations": [
+        "The response identifies multiple categories of dead code (unused exports, stale feature flags, commented-out blocks)",
+        "The response groups or prioritizes findings by confidence or risk before removing anything",
+        "The response mentions verifying code is truly unreachable before deleting (dynamic imports, string-based lookups)",
+        "The response identifies stale feature flags by name and proposes their removal",
+        "The response does not silently delete code — explains what was removed and why",
+        "The response ends with a summary of what was deleted and what was flagged but left for the user to decide"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I'm about to start a new sprint and want to pay down some tech debt first. We have a Python Django project. I don't know exactly where to start — can you do a general tech debt audit and give me a prioritized list of what to tackle?",
+      "expected_output": "The skill scopes the audit to the whole project, explores for all debt categories (duplication, dead code, complexity, inconsistent patterns, magic values), produces a categorized and prioritized inventory with severity indicators, and asks the user which items they want to address first.",
+      "files": [],
+      "expectations": [
+        "The response covers at least 4 of the 7 debt categories (duplication, dead code, god objects, deep nesting, magic values, inconsistent patterns, overly complex functions)",
+        "The response uses severity indicators or priority ordering (e.g., critical/moderate/minor or high/medium/low)",
+        "The response organizes findings by category, not as a flat unstructured list",
+        "The response does not immediately start making edits — it presents the inventory first and checks with the user",
+        "God objects or large structural issues are flagged but not immediately extracted inline",
+        "The response asks the user which items to tackle first or offers a recommended starting point"
+      ]
+    }
+  ]
+}
