@@ -7,13 +7,15 @@ description: Break a PRD into independently-deliverable work items (vertical sli
 
 Break a PRD into independently-deliverable vertical slices (tracer bullets) and push them to the right tracker.
 
-**Tracker reference files** — read the relevant one before creating work items:
+**Tracker reference files** — use the dedicated skill when available; fall back to the reference file only when it isn't:
 
-| Tracker       | Reference file                     |
-|---------------|------------------------------------|
-| Azure DevOps  | `references/azure-devops.md`       |
-| GitHub Issues | `references/github.md`             |
-| Jira          | `references/jira.md`               |
+| Tracker       | Preferred source                          | Fallback (skill absent)          |
+|---------------|-------------------------------------------|----------------------------------|
+| Azure DevOps  | `azure-devops-cli` skill (if loaded)      | `references/azure-devops.md`     |
+| GitHub Issues | `gh-cli` skill (if loaded)                | `references/github.md`           |
+| Jira          | —                                         | `references/jira.md`             |
+
+The dedicated skills (`gh-cli`, `azure-devops-cli`) carry richer, up-to-date platform context. When one is present in your `available_skills`, use it and skip the reference file — loading both is redundant and wastes context.
 
 ---
 
@@ -72,7 +74,7 @@ Iterate until the user approves the breakdown.
 
 ### 5. Create work items
 
-Read `references/<tracker>.md` for tracker-specific commands and the issue body template.
+For GitHub and Azure DevOps, check whether the matching skill (`gh-cli` or `azure-devops-cli`) is in your `available_skills`. If it is, use it — no need to also load the reference file. If it isn't, read `references/<tracker>.md` for commands and the issue body template. For Jira, always read `references/jira.md`.
 
 Create work items in **dependency order** (blockers first) so you can reference real IDs in the "Blocked by" field.
 
