@@ -17,6 +17,14 @@ Break a PRD into independently-deliverable vertical slices (tracer bullets) and 
 
 ---
 
+## Scope
+
+**In scope:** reading a PRD from a tracker, proposing and refining vertical slices with the user, creating work items in dependency order.
+
+**Out of scope:** writing implementation code, modifying the parent PRD, managing project boards, deciding architecture or technology choices.
+
+---
+
 ## Process
 
 ### 1. Identify tracker and locate the PRD
@@ -69,3 +77,5 @@ Read `references/<tracker>.md` for tracker-specific commands and the issue body 
 Create work items in **dependency order** (blockers first) so you can reference real IDs in the "Blocked by" field.
 
 Do NOT close or modify the parent PRD work item.
+
+The skill's work is complete when all approved slices have been created in the tracker and the user has the issue numbers. Return control to the user.

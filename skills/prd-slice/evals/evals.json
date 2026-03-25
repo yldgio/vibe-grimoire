@@ -1,0 +1,17 @@
+{
+  "skill_name": "prd-slice",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a PRD at https://github.com/acme/shop/issues/12 for a new checkout flow. It covers guest checkout, address validation, payment with Stripe, and an order confirmation email. Please slice it into work items and create them as GitHub issues.",
+      "expected_output": "The skill should identify GitHub as the tracker, fetch issue #12 with `gh issue view`, draft vertical slices (each end-to-end: schema + API + UI + tests), present them with dependency relationships for user approval, then create issues in dependency order using `gh issue create --blocked-by <number>` to wire up blockers natively. It should not modify issue #12.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We have a PRD in Azure DevOps, work item 88, for a reporting dashboard. It needs a data model, REST endpoints, and a React UI. Break it into tasks and create them in AzDO.",
+      "expected_output": "The skill should identify Azure DevOps as the tracker, fetch work item 88 with `az boards work-item show`, draft vertical slices, quiz the user on granularity and dependencies, then create work items in dependency order using `az boards work-item create` and wire predecessor relations via `az boards work-item relation add`. It should not modify work item 88.",
+      "files": []
+    }
+  ]
+}
