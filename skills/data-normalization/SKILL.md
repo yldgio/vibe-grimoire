@@ -117,8 +117,8 @@ For each data source identified in Step 1, produce a mapping table:
 
 | Source field | Source type | Canonical field | Canonical type | Transformation rule | Loss risk |
 |---|---|---|---|---|---|
-| `created_at` | Unix timestamp (s) | `created_at` | ISO 8601 UTC | `new Date(v * 1000).toISOString()` | none |
-| `amount` | float | `amount_minor_units` | integer | `Math.round(v * 10 ** minorUnit)` — e.g. `* 100` for USD/EUR (2dp), `* 1` for JPY (0dp), `* 1000` for BHD (3dp) | rounding if source has more decimal places than `minorUnit` |
+| `created_at` | Unix timestamp (s) | `created_at` | ISO 8601 UTC | multiply by 1000 → parse as UTC → format as ISO 8601 with `+00:00` | none |
+| `amount` | float | `amount_minor_units` | integer | multiply by `10 ** minorUnit` and round — e.g. `* 100` for USD/EUR (2dp), `* 1` for JPY (0dp), `* 1000` for BHD (3dp) | rounding if source has more decimal places than `minorUnit` |
 ```
 
 Flag every field where the transformation is lossy or ambiguous (e.g., a
@@ -144,8 +144,10 @@ generating a custom solution.
 
 ## Step 5: Write the ADR
 
-Invoke the `adr` skill to document the data contract decisions. The ADR should
-cover at minimum:
+Invoke the `adr` skill to document the data contract decisions. If the `adr`
+skill is not available, write the ADR inline as a `docs/adr/` markdown file
+following the standard ADR template (Title / Status / Context / Decision /
+Consequences). The ADR should cover at minimum:
 
 - Why ISO 8601 with explicit timezone was chosen over Unix timestamps or local time
 - Why floating-point was rejected for monetary values
