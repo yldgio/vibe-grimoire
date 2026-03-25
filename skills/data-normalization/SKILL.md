@@ -118,7 +118,7 @@ For each data source identified in Step 1, produce a mapping table:
 | Source field | Source type | Canonical field | Canonical type | Transformation rule | Loss risk |
 |---|---|---|---|---|---|
 | `created_at` | Unix timestamp (s) | `created_at` | ISO 8601 UTC | `new Date(v * 1000).toISOString()` | none |
-| `amount` | float | `amount_minor_units` | integer | `Math.round(v * 100)` | rounding if >2 dp |
+| `amount` | float | `amount_minor_units` | integer | `Math.round(v * 10 ** minorUnit)` — e.g. `* 100` for USD/EUR (2dp), `* 1` for JPY (0dp), `* 1000` for BHD (3dp) | rounding if source has more decimal places than `minorUnit` |
 ```
 
 Flag every field where the transformation is lossy or ambiguous (e.g., a
