@@ -4,12 +4,12 @@
     {
       "id": 1,
       "prompt": "We integrate with three APIs — Stripe (Unix timestamps in seconds), Salesforce (ISO strings without timezone, server is US/Eastern), and a legacy MySQL DB (DATETIME in server-local time, server is Europe/Rome). Define our canonical date/time format and generate TypeScript adapter functions for each source.",
-      "expected_output": "Skill should ask about target language (TypeScript confirmed), propose ISO 8601 with explicit UTC offset as canonical, produce a CANONICAL_DATA_MODEL.md covering the date/time type rule, generate three typed TypeScript adapter functions (one per source) with correct transformation logic, flag the Salesforce and MySQL sources as lossy due to missing timezone info, and offer to file an ADR.",
+      "expected_output": "Skill should ask about target language (TypeScript confirmed), propose ISO 8601 with explicit UTC offset as canonical, produce a CANONICAL_DATA_MODEL.md covering the date/time type rule, generate three typed TypeScript adapter functions (one per source) with correct transformation logic, explicitly confirm and use the documented server timezones for Salesforce (US/Eastern) and MySQL (Europe/Rome), call out DST fold/gap ambiguity as the remaining source of potential lossiness, and offer to file an ADR.",
       "files": [],
       "expectations": [
         "Proposes ISO 8601 with explicit UTC offset as the canonical date/time format",
-        "Flags the Salesforce source as lossy or ambiguous due to missing timezone",
-        "Flags the MySQL DATETIME source as lossy or ambiguous due to missing timezone",
+        "Confirms and uses the Salesforce server timezone (US/Eastern) and notes DST fold/gap ambiguity as a potential source of lossiness",
+        "Confirms and uses the MySQL server timezone (Europe/Rome) and notes DST fold/gap ambiguity as a potential source of lossiness",
         "Generates a separate adapter function or file for each of the three sources",
         "Produces or offers to produce a CANONICAL_DATA_MODEL.md",
         "Offers to file an ADR for the format decisions"

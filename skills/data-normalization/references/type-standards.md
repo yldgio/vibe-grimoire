@@ -35,9 +35,11 @@ silently shift across timezone boundaries.
 | Unix timestamp (seconds) | `1705329000` | `new Date(v * 1000).toISOString()` | Assumes UTC; confirm with source |
 | Unix timestamp (milliseconds) | `1705329000000` | `new Date(v).toISOString()` | Assumes UTC |
 | ISO 8601 without offset | `2024-01-15T14:30:00` | Append `+00:00` only if UTC is confirmed | High — silently wrong if not UTC |
-| MySQL DATETIME | `2024-01-15 14:30:00` | Replace space with `T`, append offset | Must know server timezone |
+| MySQL DATETIME | `2024-01-15 14:30:00` | Replace space with `T`, append offset | Must know server timezone; DST fold/gap ambiguity |
 | Locale string | `15/01/2024` | Parse with explicit format string | Ambiguous — reject at boundary |
 | RFC 2822 | `Mon, 15 Jan 2024 14:30:00 +0000` | `new Date(v).toISOString()` | Safe if offset is present |
+
+> **Note on `Z` vs `+00:00`:** `Date#toISOString()` (and equivalent UTC formatters in most languages) emits the `Z` form with milliseconds (e.g., `2024-01-15T14:30:00.000Z`). This is valid canonical per the format spec above — both `Z` and `+00:00` are accepted. Choose one form and apply it consistently within your project.
 
 ---
 
@@ -57,8 +59,8 @@ keyboards. It ensures that visually identical strings compare as equal
 - Trim leading/trailing whitespace unless whitespace is semantically significant
 - Document `maxLength` per field in the canonical model — "unbounded" is a
   decision, not a default
-- Reject null bytes (`\u0000`) at the boundary; they cause silent truncation in
-  PostgreSQL and some C libraries
+- Reject null bytes (`\u0000`) at the boundary; PostgreSQL rejects them in
+  `text`/`varchar` columns and they can break C-string-based tooling
 
 **Case:**
 - Do not canonicalize case for human-facing strings (names, descriptions)

@@ -118,7 +118,7 @@ For each data source identified in Step 1, produce a mapping table:
 | Source field | Source type | Canonical field | Canonical type | Transformation rule | Loss risk |
 |---|---|---|---|---|---|
 | `created_at` | Unix timestamp (s) | `created_at` | ISO 8601 UTC | multiply by 1000 → parse as UTC → format as ISO 8601 with `+00:00` | none |
-| `amount` | float | `amount_minor_units` | integer | multiply by `10 ** minorUnit` and round — e.g. `* 100` for USD/EUR (2dp), `* 1` for JPY (0dp), `* 1000` for BHD (3dp) | rounding if source has more decimal places than `minorUnit` |
+| `amount` | float | `amount_minor_units` | integer | multiply by `10 ** minorUnit` and round — e.g. `* 100` for USD/EUR (2dp), `* 1` for JPY (0dp), `* 1000` for BHD (3dp). ⚠️ IEEE-754 binary representation can cause off-by-1 errors even at expected precision (e.g. `1.005 * 100 = 100.49999...`); prefer a decimal library or string-based parsing over raw float arithmetic | IEEE-754 off-by-1 if decimal library not used; rounding if source has more decimal places than `minorUnit` |
 ```
 
 Flag every field where the transformation is lossy or ambiguous (e.g., a
