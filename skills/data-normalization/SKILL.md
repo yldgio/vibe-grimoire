@@ -19,7 +19,7 @@ description: >-
 # Data Normalization
 
 Define a shared, authoritative format for every primitive type in a project and
-produce the artefacts that enforce it: a `CANONICAL_DATA_MODEL.md`, field
+produce the artifacts that enforce it: a `CANONICAL_DATA_MODEL.md`, field
 mapping tables per source, adapter / validator code, and an ADR.
 
 **Related skills:** `domain-language` (align on naming before locking formats) ·
