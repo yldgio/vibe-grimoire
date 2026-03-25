@@ -17,8 +17,13 @@ If the PRD is a URL, extract the issue number from it. For a URL like
 
 ## Create an issue
 
+Always pass `--repo OWNER/REPO` explicitly. Without it, `gh` targets whatever
+repository the current working directory is set to, which may not be the
+project you are slicing.
+
 ```bash
 gh issue create \
+  --repo OWNER/REPO \
   --title "<title>" \
   --body "<body — use the template below>" \
   --label "enhancement"
@@ -28,11 +33,16 @@ If the issue is blocked by an existing issue, add `--blocked-by <number>`:
 
 ```bash
 gh issue create \
+  --repo OWNER/REPO \
   --title "<title>" \
   --body "<body — use the template below>" \
   --label "enhancement" \
   --blocked-by <blocker-issue-number>
 ```
+
+> **Note:** `--blocked-by` and `--blocking` accept issue numbers from the
+> **same repository** only. Cross-repo blocking is not supported by the `gh`
+> CLI; document cross-repo dependencies in the issue body instead.
 
 Use `--blocking <number>` for the inverse direction — when the new issue blocks an existing one.
 
