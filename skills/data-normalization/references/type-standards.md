@@ -7,16 +7,16 @@ skill. Read this file in Step 2 when drafting the Canonical Data Model.
 
 ## Dates and times
 
-### Recommended standard: ISO 8601 extended with explicit UTC offset
+### Recommended standard: ISO 8601 extended with explicit UTC offset or `Z` for UTC
 
-**Format:** `YYYY-MM-DDTHH:mm:ss±HH:MM`
-**Example:** `2024-01-15T14:30:00+00:00`
+**Format:** `YYYY-MM-DDTHH:mm:ss[.SSS]([±HH:MM]|Z)`
+**Examples:** `2024-01-15T14:30:00+00:00`, `2024-01-15T14:30:00.000Z`
 
 **Why:**
 - Human-readable and machine-parseable without a format string
 - Unambiguous ordering (lexicographic sort equals chronological sort for UTC)
 - Universally supported by JSON parsers, databases, and APIs
-- Explicit offset eliminates the "whose local time?" ambiguity
+- Explicit offset (or `Z` for UTC) eliminates the "whose local time?" ambiguity
 
 **UTC vs. local time:**
 Prefer UTC (`+00:00`) for storage and transmission. Render in local time only at
@@ -104,9 +104,9 @@ The scale (number of decimal places) must travel with the value.
 
 | Source format | Example | Transformation | Risk |
 |---|---|---|---|
-| Float | `12.34` | `Math.round(v * 100)` for 2dp | Rounding if source has >2dp |
+| Float | `12.34` | `Math.round(v * 10**minorUnit)` (for USD/EUR, `minorUnit = 2` → `* 100`) | Rounding if source has >scale or >minorUnit dp |
 | Locale string | `"1.234,56"` | Strip `.` as thousands sep, replace `,` with `.` | Locale must be known |
-| String with currency symbol | `"$12.34"` | Strip symbol, parse, multiply | Symbol must match expected currency |
+| String with currency symbol | `"$12.34"` | Strip symbol, parse, multiply by `10**minorUnit` (e.g., `* 100` for USD/EUR) | Symbol must match expected currency and minorUnit |
 | Integer cents | `1234` | Identity | Confirm unit with source docs |
 
 ---

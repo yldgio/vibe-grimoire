@@ -388,8 +388,8 @@ skills/           # Published skills — source of truth
 ├── az-devops-cli/
 ├── cleanup-writing/
 ├── create-prd/
-├── design-it-twice/
 ├── data-normalization/
+├── design-it-twice/
 ├── domain-language/
 ├── plan-from-prd/
 ├── prd-slice/
