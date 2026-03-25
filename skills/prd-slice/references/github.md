@@ -24,18 +24,19 @@ gh issue create \
   --label "enhancement"
 ```
 
-Capture the returned issue URL or number — you'll need it to wire up blockers.
-
-### Indicate a "Blocked by" relationship
-
-GitHub does not have native blocking links. Use body references instead:
-
-- Reference the blocker in the body: `Blocked by #<number>`
-- If the repo uses a project board with a "Blocked by" custom field, set it via:
+If the issue is blocked by an existing issue, add `--blocked-by <number>`:
 
 ```bash
-gh project item-edit --id <item-id> --field-id <blocked-by-field-id> --text "#<blocker-number>"
+gh issue create \
+  --title "<title>" \
+  --body "<body — use the template below>" \
+  --label "enhancement" \
+  --blocked-by <blocker-issue-number>
 ```
+
+Use `--blocking <number>` for the inverse direction — when the new issue blocks an existing one.
+
+Capture the returned issue URL or number — you'll need it to wire up blockers for subsequent issues.
 
 ---
 
@@ -59,12 +60,6 @@ rather than duplicating content.
 - [ ] Criterion 1
 - [ ] Criterion 2
 - [ ] Criterion 3
-
-## Blocked by
-
-- Blocked by #<issue-number>
-
-Or: "None — can start immediately"
 
 ## User stories addressed
 
