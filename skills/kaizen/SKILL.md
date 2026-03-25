@@ -18,7 +18,7 @@ description: >
 
 Every mistake or correction is signal. This skill captures it immediately — before the turn ends and the context is lost — as a short, permanent note in `kaizen/`.
 
-The philosophy (from Japanese manufacturing): small, continuous improvements compound. A 10-line note written now can save hours later.
+The philosophy (from Japanese manufacturing): small, continuous improvements compound. A 5-10 line note written now can save hours later.
 
 ---
 
