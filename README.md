@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-15-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-16-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -258,6 +258,29 @@ skills/domain-language/evals/evals.json
 
 ---
 
+### Data Contracts
+
+---
+
+### `data-normalization`
+
+Establish a Canonical Data Model for a project — define authoritative format rules for each primitive type, map every external data source to the canonical form, generate adapter / validator code, and record decisions in an ADR.
+
+- **Type-first workflow** — walks through all primitive types (dates, strings, decimals, identifiers, enums, booleans, null semantics) and confirms a rule for each before writing anything
+- **ISO 8601 + explicit timezone** — recommends and enforces UTC-offset timestamps; flags lossy transformations (e.g., local-time sources with no offset) as data quality issues
+- **No floats for money** — proposes integer minor units or explicit-scale Decimal; generates validators that reject IEEE 754 floats at the ingestion boundary
+- **Field mapping tables** — per-source tables showing source field → canonical field, type coercion, transformation rule, and round-trip loss risk
+- **Adapter / validator code generation** — generates code in the project's target language using existing validation libraries (zod, pydantic, joi) where available
+- **ADR integration** — calls the `adr` skill to document why these formats were chosen and what was rejected
+
+```
+skills/data-normalization/SKILL.md
+skills/data-normalization/references/type-standards.md  # ISO 8601, UTF-8, IEEE 754, UUID guidance
+skills/data-normalization/evals/evals.json
+```
+
+---
+
 ### `cleanup-writing`
 
 Edit and improve a piece of writing section by section — fixing information order, improving clarity, and tightening prose — then deliver the full revised document.
@@ -365,6 +388,7 @@ skills/           # Published skills — source of truth
 ├── az-devops-cli/
 ├── cleanup-writing/
 ├── create-prd/
+├── data-normalization/
 ├── design-it-twice/
 ├── domain-language/
 ├── plan-from-prd/

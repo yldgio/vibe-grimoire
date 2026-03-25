@@ -1,0 +1,47 @@
+{
+  "skill_name": "data-normalization",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We integrate with three APIs — Stripe (Unix timestamps in seconds), Salesforce (ISO strings without timezone, server is US/Eastern), and a legacy MySQL DB (DATETIME in server-local time, server is Europe/Rome). Define our canonical date/time format and generate TypeScript adapter functions for each source.",
+      "expected_output": "Skill should ask about target language (TypeScript confirmed), propose ISO 8601 with explicit UTC offset as canonical, produce a CANONICAL_DATA_MODEL.md covering the date/time type rule, generate three typed TypeScript adapter functions (one per source) with correct transformation logic, explicitly confirm and use the documented server timezones for Salesforce (US/Eastern) and MySQL (Europe/Rome), call out DST fold/gap ambiguity as the remaining source of potential lossiness, and offer to file an ADR.",
+      "files": [],
+      "expectations": [
+        "Proposes ISO 8601 with explicit UTC offset as the canonical date/time format",
+        "Confirms and uses the Salesforce server timezone (US/Eastern) and notes DST fold/gap ambiguity as a potential source of lossiness",
+        "Confirms and uses the MySQL server timezone (Europe/Rome) and notes DST fold/gap ambiguity as a potential source of lossiness",
+        "Generates a separate adapter function or file for each of the three sources",
+        "Produces or offers to produce a CANONICAL_DATA_MODEL.md",
+        "Offers to file an ADR for the format decisions"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Our payment service receives monetary amounts from three vendors in different formats: locale-formatted strings like '1.234,56' (European locale), IEEE 754 floats like 1234.56, and integer cents like 123456. We use Python. Define a canonical money representation and generate validators for each vendor format.",
+      "expected_output": "Skill should propose integer minor units as canonical money representation (with explicit currency code), document the type rule in CANONICAL_DATA_MODEL.md, generate Python validators that reject floats as canonical storage and parse each vendor format safely (locale string with known separator, float with rounding warning, integer passthrough), and flag the float source as lossy if the source may have more than 2 decimal places.",
+      "files": [],
+      "expectations": [
+        "Proposes integer minor units as the canonical money representation",
+        "Requires a currency code to be stored alongside the amount",
+        "Explicitly rejects IEEE 754 floats for canonical monetary storage",
+        "Generates a Python validator for the locale-formatted string vendor",
+        "Generates a Python validator for the float vendor with a rounding warning or note",
+        "Generates a Python validator for the integer cents vendor",
+        "Uses a currency-aware minor unit exponent (not a hard-coded `* 100`)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I'm starting a new Node.js service that will consume events from Kafka (JSON), a REST API, and a PostgreSQL database. I have no existing schema conventions. Help me define a canonical data model document for this service covering all primitive types.",
+      "expected_output": "Skill should walk through Step 1 questions (sources confirmed, Node.js/TypeScript as target, no existing conventions), then produce a comprehensive CANONICAL_DATA_MODEL.md covering all primitive types (dates, strings, decimals, identifiers, enums, booleans, null/absent), present the draft for user confirmation before saving, and offer to generate mapping tables for the three named sources even though specific field formats were not given.",
+      "files": [],
+      "expectations": [
+        "Asks at least one clarifying question from Step 1 before writing anything (e.g., target language, existing conventions)",
+        "Produces a CANONICAL_DATA_MODEL.md covering dates, strings, decimals/money, identifiers, enums, booleans, and null/absent semantics",
+        "Presents the draft to the user for confirmation before saving the file",
+        "Covers all three named sources (Kafka, REST API, PostgreSQL) in mapping tables or offers to do so",
+        "Documents null vs. absent convention explicitly"
+      ]
+    }
+  ]
+}
