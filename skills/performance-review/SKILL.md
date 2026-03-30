@@ -41,7 +41,7 @@ Intuition about performance is wrong more often than it is right. Measure everyt
 
 ## Complexity Analysis
 
-Before profiling, reason about algorithmic complexity. A O(n²) algorithm in a hot path is always the first thing to fix — no amount of low-level optimization saves you from the wrong algorithm.
+Before profiling, reason about algorithmic complexity. An O(n²) algorithm in a hot path is always the first thing to fix — no amount of low-level optimization saves you from the wrong algorithm.
 
 ### Big O Reference
 

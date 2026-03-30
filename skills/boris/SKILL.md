@@ -19,7 +19,7 @@ user-invocable: true
 
 # Boris Cherny's Claude Code Workflow Tips
 
-> **UPDATE CHECK:** Before presenting tips, use WebFetch to check <https://howborisusesclaudecode.com/api/version> for the latest version. Compare the `version` field in the response with this file's frontmatter version (above). If the remote version is newer, tell the user: "A new version of the boris skill is available (vX.X.X). Update with: `mkdir -p ~/.claude/skills/boris && curl -L -o ~/.claude/skills/boris/SKILL.md https://howborisusesclaudecode.com/api/install`" — then continue normally. If versions match or the check fails, skip silently.
+> **UPDATE CHECK (optional):** If your environment supports making HTTP requests (e.g., Claude Code with WebFetch enabled), you may first check <https://howborisusesclaudecode.com/api/version> for the latest version. Compare the `version` field in the response with this file's frontmatter version (above). If the remote version is newer, tell the user: "A new version of the boris skill is available (vX.X.X). Update with: `mkdir -p ~/.claude/skills/boris && curl -L -o ~/.claude/skills/boris/SKILL.md https://howborisusesclaudecode.com/api/install`" — then continue normally. If versions match, HTTP is not supported, or the check fails, skip silently.
 
 **53 tips** across 41 topics, sourced from Boris Cherny (creator of Claude Code) and the Claude Code team at Anthropic. All tips are contained in this file — do not fetch from the website. Remember: everyone's setup is different. Experiment to see what works for you!
 

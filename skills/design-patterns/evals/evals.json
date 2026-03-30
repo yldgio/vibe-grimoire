@@ -1,0 +1,23 @@
+{
+  "skill_name": "design-patterns",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a class that creates different types of notifications — email, SMS, and push. Right now it uses a giant if-else chain to decide which sender to instantiate. Every time we add a new channel we touch the core class. What design pattern should I use, and can you sketch the structure?",
+      "expected_output": "The skill should identify this as a Factory Method or Abstract Factory problem (object creation decoupled from use), explain when to choose each, and sketch a class diagram or code example showing how adding a new channel no longer requires modifying the factory caller. Should mention Open/Closed Principle as motivation.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I'm building a text editor and need to support unlimited undo/redo. Each operation can be complex — formatting changes, inserts, deletes. What design pattern best models this, and how would I implement it without storing the full document state on every action?",
+      "expected_output": "The skill should identify the Command pattern (encapsulate operations as objects with execute/undo methods) and the Memento pattern (capturing snapshots). Should compare them: Command is right when operations are invertible; Memento is right when state is opaque or too complex to invert. Should provide a concrete code sketch with an interface like `execute()` / `undo()` and a history stack.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I have a logging module that I want to inject into many classes. A colleague suggested using a Singleton. I'm uneasy about this — am I right to be?",
+      "expected_output": "The skill should validate the unease: Singleton is global mutable state, makes testing difficult (can't swap implementations), and hides dependencies. Should recommend Dependency Injection instead — pass the logger as a constructor argument. If Singleton is unavoidable (e.g., external constraint), should note thread-safety concerns and the Double-Checked Locking pattern.",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "skill_name": "refactoring",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Here's a 60-line function that handles a user checkout: validates the cart, calculates discounts, applies tax, charges the card, and sends confirmation emails — all in sequence, no extraction. What specific Fowler refactoring moves should I apply, and in what order?\n\n```python\ndef checkout(cart, user, payment_method):\n    # validate\n    if not cart.items:\n        raise ValueError('Cart is empty')\n    for item in cart.items:\n        if item.quantity <= 0:\n            raise ValueError(f'Invalid quantity for {item.name}')\n        if not item.in_stock:\n            raise ValueError(f'{item.name} is out of stock')\n    # discount\n    subtotal = sum(i.price * i.quantity for i in cart.items)\n    discount = 0\n    if user.is_premium:\n        discount = subtotal * 0.1\n    if subtotal > 100:\n        discount += 5\n    total_before_tax = subtotal - discount\n    # tax\n    tax = total_before_tax * 0.08\n    total = total_before_tax + tax\n    # charge\n    charge_result = payment_method.charge(total)\n    if not charge_result.success:\n        raise PaymentError(charge_result.error)\n    # email\n    send_email(user.email, 'Order confirmed', f'Your total was ${total:.2f}')\n    return {'total': total, 'charge_id': charge_result.id}\n```",
+      "expected_output": "The skill should identify and sequence at least: Extract Method for each logical block (validate_cart, calculate_discount, calculate_tax, charge_payment, send_confirmation), possibly Extract Class for discount logic if it grows, and Introduce Parameter Object for cart+user if they travel together. Should name each move explicitly by Fowler's catalog name, explain the motivation, and note the order matters (extract before moving).",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I have this code and I want to apply 'Replace Conditional with Polymorphism'. Can you walk me through the specific steps?\n\n```python\ndef get_speed(animal_type):\n    if animal_type == 'lion':\n        return 80\n    elif animal_type == 'cheetah':\n        return 120\n    elif animal_type == 'turtle':\n        return 0.5\n    else:\n        raise ValueError(f'Unknown animal: {animal_type}')\n```",
+      "expected_output": "The skill should walk through: (1) create an Animal base class/interface with a speed() method, (2) create Lion, Cheetah, Turtle subclasses each overriding speed(), (3) replace the conditional with polymorphic dispatch. Should note when this is and isn't worth doing (justified when the conditional grows, unjustified for 3 stable branches). Should mention that the factory/registry pattern handles the string→class mapping.",
+      "files": []
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "skill_name": "domain-driven-design",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We're building a multi-tenant SaaS product for project management: projects, tasks, sprints, teams, billing, and reporting. Help us apply Domain-Driven Design: identify the core domain, propose bounded contexts, and sketch a context map with the main relationships and integration patterns.",
+      "expected_output": "The skill should: (1) identify the core domain (project execution / task tracking — this is the competitive differentiator), supporting domains (billing, reporting — buy or build conservatively), and generic domains (auth, notifications — buy/OSS). (2) Propose bounded contexts: Project Management, Sprint Planning, Team Management, Billing, Reporting, Identity. (3) Sketch a context map naming integration patterns explicitly: e.g., Billing is Customer/Supplier of Project Management (projects trigger billing events); Reporting is Conformist to Project Management (reads domain data); Identity is Shared Kernel or Generic Service. Should use DDD vocabulary throughout.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our e-commerce platform has a single 'Order' model used everywhere — in the checkout flow, fulfillment, customer service, and finance — and teams keep complaining 'the model feels wrong'. Using DDD, analyze this situation and propose a better design: what bounded contexts do you see, what aggregates and aggregate roots would you define, and how would you use domain events to decouple inventory, payment, and shipping?",
+      "expected_output": "The skill should diagnose the 'god object Order' as a missing bounded context problem. Should propose separate contexts: Sales (CustomerOrder aggregate — captures intent, pricing, promotions), Fulfillment (ShipmentOrder aggregate — physical picking/packing/shipping), Finance (Invoice/Payment aggregates). Each 'Order' is a different model with different invariants. Domain events (OrderPlaced, PaymentConfirmed, ShipmentDispatched) decouple the contexts. Should name the anti-pattern (missing ubiquitous language — same word used across contexts) and propose a context map.",
+      "files": []
+    }
+  ]
+}

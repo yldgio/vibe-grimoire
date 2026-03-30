@@ -4,7 +4,7 @@
 
 ## Overview
 
-**The Immortals** is a team of four legendary developer personas, each embodying a distinct school of software craft. They can work solo, in pairs, or as a full council depending on task complexity. The team is orchestrated by a fifth agent — `the-immortals` — that routes tasks intelligently and synthesizes perspectives.
+**The Immortals** is a team of five legendary developer personas, each embodying a distinct school of software craft. They can work solo, in pairs, or as a full council depending on task complexity. The team is orchestrated by a sixth agent — `the-immortals` — that routes tasks intelligently and synthesizes perspectives.
 
 ---
 
@@ -156,7 +156,7 @@ Overlapping is **intentional and encouraged**. Fowler and Bob both care about st
 2. **New skills** — `design-patterns`, `clean-code`, `refactoring`, `domain-driven-design`, `performance-review`
 3. **Orchestrator skill** — `the-immortals` routing logic
 4. **Orchestrator agent** — `.github/agents/the-immortals.agent.md`
-5. **README update** — add The Immortals section
+5. **README update** — add The Immortals section *(pending — tracked in `immortals-docs-design.md`)*
 
 ---
 

@@ -1,0 +1,17 @@
+{
+  "skill_name": "performance-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "This function is called on every page load for each user. It's been flagged as slow. Can you identify the performance problems and propose fixes?\n\n```python\ndef get_user_dashboard(user_id):\n    user = db.query('SELECT * FROM users WHERE id = ?', user_id)\n    orders = db.query('SELECT * FROM orders WHERE user_id = ?', user_id)\n    products = []\n    for order in orders:\n        items = db.query('SELECT * FROM order_items WHERE order_id = ?', order['id'])\n        for item in items:\n            product = db.query('SELECT * FROM products WHERE id = ?', item['product_id'])\n            products.append(product)\n    recommendations = []\n    all_products = db.query('SELECT * FROM products')\n    for p in all_products:\n        if p['category'] in [prod['category'] for prod in products]:\n            recommendations.append(p)\n    return {'user': user, 'orders': orders, 'recommendations': recommendations[:5]}\n```",
+      "expected_output": "The skill should identify: (1) N+1 query problem — the nested loops produce O(orders * items) database queries; fix with JOIN or batch fetch. (2) Full table scan — `SELECT * FROM products` loads every product just to filter 5; fix with a WHERE clause using IN or a category join. (3) Repeated category lookup — `[prod['category'] for prod in products]` rebuilt on every iteration — O(n²); hoist to a set. (4) SELECT * — fetch only needed columns. Should quantify the worst-case: if 10 orders × 5 items each = 50+ queries per page load. Should suggest: SQL JOIN to collapse to 2-3 queries, add indexes on foreign keys, cache recommendations.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our API endpoint takes 4-8 seconds to respond under load. We suspect it's slow but we don't know where. We have no profiling set up. Walk me through a systematic approach to finding and fixing the bottleneck.",
+      "expected_output": "The skill should give a structured profiling approach: (1) measure first — add timing instrumentation at coarse level (request in → DB calls → external APIs → response out) before guessing. (2) Identify the bottleneck category: CPU-bound (algorithm, hot path), I/O-bound (DB, external API, disk), or memory-bound (GC pressure, allocation). (3) For each category, specific tools/techniques: cProfile/py-spy for CPU, slow query log + EXPLAIN for DB, distributed tracing for API chains. (4) The 80/20 rule — fix the slowest 20% first, re-measure, repeat. Should explicitly say 'don't optimize without measuring' and 'don't fix what the profiler didn't flag'.",
+      "files": []
+    }
+  ]
+}

@@ -53,7 +53,7 @@ Before any refactoring move:
 
 ```
 # Before
-def print_owing(amount):
+def print_owing(self, amount):
     # print banner
     print("*" * 20)
     print("* Customer Owes *")
@@ -62,7 +62,7 @@ def print_owing(amount):
     print(f"amount: {amount}")
 
 # After
-def print_owing(amount):
+def print_owing(self, amount):
     self._print_banner()
     self._print_details(amount)
 
@@ -85,16 +85,16 @@ def _print_details(self, amount):
 
 ```
 # Before
-def is_more_than_five_late_deliveries():
+def is_more_than_five_late_deliveries(self):
     return self.number_of_late_deliveries > 5
 
-def get_rating():
+def get_rating(self):
     if self.is_more_than_five_late_deliveries():
         return 2
     return 1
 
 # After
-def get_rating():
+def get_rating(self):
     if self.number_of_late_deliveries > 5:
         return 2
     return 1
@@ -189,18 +189,20 @@ class NorwegianBlueParrot:
 
 ```
 # Before
-base_price = quantity * item_price
-if base_price > 1000:
-    return base_price * 0.95
-return base_price * 0.98
+def get_total(self):
+    base_price = self.quantity * self.item_price
+    if base_price > 1000:
+        return base_price * 0.95
+    return base_price * 0.98
 
 # After
 def base_price(self):
     return self.quantity * self.item_price
 
-if self.base_price() > 1000:
-    return self.base_price() * 0.95
-return self.base_price() * 0.98
+def get_total(self):
+    if self.base_price() > 1000:
+        return self.base_price() * 0.95
+    return self.base_price() * 0.98
 ```
 
 **Risk:** Low. Watch for: expressions with side effects (don't extract those); performance-sensitive paths where recalculation is expensive.

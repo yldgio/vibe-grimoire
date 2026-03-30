@@ -1,0 +1,17 @@
+{
+  "skill_name": "clean-code",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review this function for clean code issues — naming, size, responsibility, and readability:\n\n```python\ndef process(d, f=False):\n    res = []\n    for i in d:\n        if i['a'] > 0:\n            x = i['a'] * i['b']\n            if f:\n                x = round(x, 2)\n            res.append(x)\n    return res\n```",
+      "expected_output": "The skill should identify: (1) parameter names `d`, `f`, `i`, `x`, `res`, `a`, `b` are meaningless — rename to something intent-revealing like `items`, `round_result`, `item`, `value`, `results`, `quantity`, `unit_price`. (2) The boolean flag parameter `f` is a smell — suggests the function does two things; recommend splitting or using an enum. (3) The function name `process` violates the 'reveal intent' rule — rename to something like `calculate_line_totals`. Should apply Uncle Bob's naming rules and flag the boolean flag anti-pattern.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I have a UserService class with these methods: register(), login(), logout(), resetPassword(), updateProfile(), getProfilePicture(), uploadProfilePicture(), resizeImage(), sendWelcomeEmail(), sendPasswordResetEmail(), validateEmailFormat(), validatePasswordStrength(), hashPassword(), generateToken(), verifyToken(). Is this a SOLID violation? What should I do?",
+      "expected_output": "The skill should identify this as a Single Responsibility Principle violation (the class does authentication, profile management, image processing, email delivery, validation, and token management — at least 6 distinct responsibilities). Should propose splitting into: AuthService (login/logout/token), RegistrationService (register/welcome email), ProfileService (update/photo), ImageService (resize), EmailService (send), PasswordService (hash/validate/reset). Should also note this may be an Interface Segregation violation if the class implements a single interface. Should name the refactoring path: Extract Class for each responsibility.",
+      "files": []
+    }
+  ]
+}
