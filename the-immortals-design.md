@@ -64,7 +64,7 @@
 |--------|---------|-----------|
 | Task clearly maps to one domain | Solo | 1 specialist |
 | Two domains intersect | Duo | 2 specialists |
-| Architectural / ambiguous / explicit `@the-immortals` | Full Council | All 4 |
+| Architectural / ambiguous / explicit `@the-immortals` | Full Council | All 5 |
 | User override: `@fowler`, `@beck`, `@uncle-bob`, `@evans`, `@linus` | Direct | Named specialist |
 
 ### Council Output Format
