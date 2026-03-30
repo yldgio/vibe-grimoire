@@ -1,0 +1,41 @@
+{
+  "skill_name": "performance-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "This function is called on every page load for each user. It's been flagged as slow. Can you identify the performance problems and propose fixes?\n\n```python\ndef get_user_dashboard(user_id):\n    user = db.query('SELECT * FROM users WHERE id = ?', user_id)\n    orders = db.query('SELECT * FROM orders WHERE user_id = ?', user_id)\n    products = []\n    for order in orders:\n        items = db.query('SELECT * FROM order_items WHERE order_id = ?', order['id'])\n        for item in items:\n            product = db.query('SELECT * FROM products WHERE id = ?', item['product_id'])\n            products.append(product)\n    recommendations = []\n    all_products = db.query('SELECT * FROM products')\n    for p in all_products:\n        if p['category'] in [prod['category'] for prod in products]:\n            recommendations.append(p)\n    return {'user': user, 'orders': orders, 'recommendations': recommendations[:5]}\n```",
+      "expected_output": "The skill should identify: (1) N+1 query problem — the nested loops produce O(orders * items) database queries; fix with JOIN or batch fetch. (2) Full table scan — `SELECT * FROM products` loads every product just to filter 5; fix with a WHERE clause using IN or a category join. (3) Repeated category lookup — `[prod['category'] for prod in products]` rebuilt on every iteration — O(n²); hoist to a set. (4) SELECT * — fetch only needed columns. Should quantify the worst-case: if 10 orders × 5 items each = 50+ queries per page load. Should suggest: SQL JOIN to collapse to 2-3 queries, add indexes on foreign keys, cache recommendations.",
+      "assertions": [
+        "Identified the N+1 query pattern in the nested order/item loops",
+        "Quantified worst-case query count as orders × items (e.g., 10 orders × 5 items = 50+ queries per page load)",
+        "Identified the full-table-scan on SELECT * FROM products loaded entirely to filter 5 recommendations",
+        "Recommended indexing on foreign keys (user_id on orders, order_id on order_items, product_id on order_items)"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Our API endpoint takes 4-8 seconds to respond under load. We suspect it's slow but we don't know where. We have no profiling set up. Walk me through a systematic approach to finding and fixing the bottleneck.",
+      "expected_output": "The skill should give a structured profiling approach: (1) measure first — add timing instrumentation at coarse level (request in → DB calls → external APIs → response out) before guessing. (2) Identify the bottleneck category: CPU-bound (algorithm, hot path), I/O-bound (DB, external API, disk), or memory-bound (GC pressure, allocation). (3) For each category, specific tools/techniques: cProfile/py-spy for CPU, slow query log + EXPLAIN for DB, distributed tracing for API chains. (4) The 80/20 rule — fix the slowest 20% first, re-measure, repeat. Should explicitly say 'don't optimize without measuring' and 'don't fix what the profiler didn't flag'.",
+      "assertions": [
+        "Recommended measuring/profiling before guessing or attempting any fix",
+        "Identified the three bottleneck categories: CPU-bound, I/O-bound, and memory-bound",
+        "Named at least two specific profiling tools (e.g., cProfile, py-spy, EXPLAIN ANALYZE, clinic.js, pprof)",
+        "Applied the 80/20 rule — fix the biggest bottleneck first, re-measure, then repeat"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "We're running a real-time leaderboard that updates every 5 seconds. Our stack: Node.js API, PostgreSQL, Redis. The leaderboard has 1M users. Our current approach: on every update, we recalculate the full leaderboard with SELECT user_id, SUM(score) FROM events GROUP BY user_id ORDER BY score DESC LIMIT 100 running against a 500M-row events table. We're seeing 15-second query times. We also have 50 Node workers all doing this calculation simultaneously every 5 seconds. Where are the bottlenecks and what's the fix?",
+      "expected_output": "The skill should identify: (1) Aggregate query on 500M rows is the core problem — the events table needs to be materialized or pre-aggregated; maintain a scores table updated incrementally on each event insert rather than recalculating the full sum on every read. (2) 50 workers doing the same calculation every 5s = fan-out of 50 identical expensive queries simultaneously — replace with a single background job that recalculates and pushes to Redis; workers read from cache instead of hitting PostgreSQL. (3) ORDER BY on a non-indexed computed column at 1M users is O(n log n) sort on every request. (4) Recommend: Redis sorted set (ZADD/ZREVRANGE is O(log n) per update, O(k) read for top-k); update scores incrementally on event insert; workers read ZREVRANGE from Redis rather than querying PostgreSQL.",
+      "assertions": [
+        "Identified the 500M-row aggregate query as the primary bottleneck (full table scan recalculated on every update)",
+        "Recommended Redis sorted sets (ZADD/ZREVRANGE) or equivalent pre-aggregation strategy",
+        "Flagged the 50-worker fan-out as unnecessary duplication of the same expensive query",
+        "Recommended incremental score updates on event insert instead of recalculating full aggregates"
+      ],
+      "files": []
+    }
+  ]
+}

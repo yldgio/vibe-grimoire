@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-17-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-25-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -389,6 +389,149 @@ skills/tdd/evals/evals.json
 
 ---
 
+## The Immortals
+
+Six skills that encode the most influential voices in software engineering — and an orchestrator that routes to the right expert(s) automatically.
+
+### `design-patterns`
+
+Identify the right GoF or enterprise pattern for a problem, apply it with minimal disruption, and detect when patterns are misapplied or forced.
+
+- **Full catalog coverage** — GoF creational, structural, behavioral + Fowler's enterprise application patterns (Repository, Unit of Work, Service Layer, etc.)
+- **Pattern recognition** — reads existing code structure and signals which patterns are present, absent, or misidentified
+- **Fit evaluation** — asks whether the problem justifies the abstraction before recommending a pattern
+- **Misuse detection** — flags Pattern Astronaut disease, Singleton abuse, wrong-dimension variation
+- **Integrates with** `refactoring` (prepare the ground) → **`design-patterns`** (apply) → `adr` (record the decision)
+
+```
+skills/design-patterns/SKILL.md
+```
+
+---
+
+### `clean-code`
+
+Systematically audit code for naming honesty, function shape, class cohesion, and SOLID violations — making code readable for every future reader.
+
+- **Naming audit** — checks every function, class, and variable name for truth, specificity, and vague evasions (`Manager`, `Helper`, `Handler`)
+- **SOLID analysis** — checks SRP, OCP, LSP, ISP, DIP with specific signals for each violation
+- **Function shape review** — size, abstraction levels, argument count; flags mixed-level functions and long argument lists
+- **Comment hygiene** — removes comments that repeat the code; keeps those that explain *why*
+
+```
+skills/clean-code/SKILL.md
+```
+
+---
+
+### `refactoring`
+
+Apply specific, named, behavior-preserving refactoring moves — one at a time, with tests passing before and after each move.
+
+- **Named moves from Fowler's catalog** — Extract Method, Inline Method, Introduce Parameter Object, Replace Conditional with Polymorphism, Move Method/Field, and more
+- **Safety discipline** — verifies tests are green before each move; reverts immediately if tests break after
+- **Atomic commits** — each move is one commit; rollback is always trivial
+- **Distinct from `refactoring-plan`** — this skill *executes* specific moves; use `refactoring-plan` to choose the overall strategy
+
+```
+skills/refactoring/SKILL.md
+```
+
+---
+
+### `domain-driven-design`
+
+Model complex domains using Evans's strategic and tactical DDD: bounded contexts, context maps, aggregates, domain events, and ubiquitous language.
+
+- **Strategic design** — identifies core, supporting, and generic domains; maps bounded contexts and names integration patterns (ACL, Partnership, Conformist, Open Host Service, etc.)
+- **Tactical design** — models aggregates, entities, value objects, domain events, repositories, and domain services within each context
+- **Ubiquitous language enforcement** — surfaces the translation tax when code and domain experts use different words
+- **Anti-pattern detection** — flags anemic domain models, god aggregates, leaking bounded contexts, and premature CQRS/Event Sourcing
+
+```
+skills/domain-driven-design/SKILL.md
+```
+
+---
+
+### `performance-review`
+
+Identify where code is actually slow, why it's slow, and what the minimum intervention is to fix it — never optimizes without measuring.
+
+- **Complexity analysis** — Big O reasoning for algorithmic problems before profiling; flags O(n²) in hot paths, linear searches, unmoized recursion
+- **I/O and N+1 detection** — identifies the most common database performance failure; recommends batching, eager loading, caching at the right level
+- **Memory and concurrency** — allocation patterns, GC pressure, lock contention, critical section granularity
+- **Profiling strategy** — ecosystem-specific tooling (cProfile, py-spy, pprof, async-profiler, EXPLAIN ANALYZE) and the measure-first discipline
+
+```
+skills/performance-review/SKILL.md
+```
+
+---
+
+### `the-immortals`
+
+Orchestrate the five legendary developer personas — routing tasks to the right specialist(s) and synthesizing their perspectives into a clear recommendation.
+
+- **Automatic routing** — classifies tasks as 🟢 Solo (one specialist), 🟡 Duo (two domains intersect), or 🔴 Full Council (architectural or cross-cutting scope)
+- **Direct overrides** — `@fowler`, `@beck`, `@uncle-bob`, `@evans`, `@linus` bypass routing and go straight to the named member
+- **Structured council format** — each member speaks in their own voice, then a Synthesis surfaces the majority view and named Dissents preserve real disagreements
+- **Linus always joins Full Council** — devil's advocacy is his standing role
+
+```
+skills/the-immortals/SKILL.md
+```
+
+---
+
+## Agents
+
+The Immortals are five legendary developer personas — Martin Fowler, Kent Beck, Robert C. Martin, Eric Evans, and Linus Torvalds — plus an orchestrator that routes tasks to the right expert or convenes a full council. Each agent has a distinct voice, specialty, and set of skills it invokes.
+
+Install once with the scripts below. Then invoke any agent by alias in your Copilot CLI chat.
+
+| Agent | Alias | Specialty | Persona |
+|-------|-------|-----------|---------|
+| Martin Fowler | `@fowler` | Design patterns, refactoring, enterprise architecture | Precise, catalog-driven |
+| Kent Beck | `@beck` | TDD, XP, simplicity | Direct, test-first |
+| Robert C. Martin | `@uncle-bob` | Clean Code, SOLID, OOP | Didactic, principled |
+| Eric Evans | `@evans` | Domain-Driven Design, ubiquitous language | Strategic, domain-fluent |
+| Linus Torvalds | `@linus` | Performance, systems, code review | Blunt, performance-obsessed |
+| The Immortals | `@the-immortals` | Orchestrator — Solo / Duo / Full Council | Routes by complexity |
+
+### Usage
+
+**Single expert:**
+```
+@fowler review this service layer for coupling violations
+```
+
+**Orchestrator (routes automatically):**
+```
+@the-immortals we're seeing N+1 queries in our checkout flow
+```
+
+**Full council (append `—full council`):**
+```
+@the-immortals review this auth module — full council
+```
+
+### Install
+
+**macOS / Linux:**
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/yldgio/vibe-grimoire/main/install-immortals.sh)
+```
+
+**Windows (PowerShell):**
+```powershell
+iex (iwr -UseBasicParsing https://raw.githubusercontent.com/yldgio/vibe-grimoire/main/install-immortals.ps1).Content
+```
+
+For Claude Code and OpenCode, see [docs/installing-agents.md](docs/installing-agents.md).
+
+---
+
 ## Hooks
 
 `hooks/tool-guard/policy.json` is the canonical tool policy for **this repo**. It demonstrates the tool-guard pattern:
@@ -406,21 +549,32 @@ Runtime hook scripts in `.github/hooks/` (Copilot CLI) and `.claude/hooks/` (Cla
 skills/           # Published skills — source of truth
 ├── adr/
 ├── az-devops-cli/
+├── boris/
 ├── cleanup-writing/
+├── clean-code/
 ├── create-prd/
 ├── data-normalization/
 ├── design-it-twice/
+├── design-patterns/
+├── domain-driven-design/
 ├── domain-language/
+├── kaizen/
+├── performance-review/
 ├── plan-from-prd/
 ├── prd-slice/
 ├── pre-mortem/
+├── refactoring/
 ├── refactoring-plan/
 ├── report-issue/
 ├── setup-repo/
 ├── tdd/
 ├── techdebt/
+├── the-immortals/
 ├── tool-guard/
 └── triage-bug/
+
+.github/
+└── agents/       # The Immortals persona agents
 
 hooks/            # Canonical tool policies for this repo
 .github/hooks/    # Copilot CLI runtime hook outputs

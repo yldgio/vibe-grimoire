@@ -6,4 +6,5 @@ Key paths: `skills/` published skills · `hooks/` canonical policies · `.github
 ## Kaizen Learnings
 
 <!-- Populated automatically by the kaizen skill. One line per entry. -->
+- **2026-03-30** [git push without -u does not set upstream tracking](kaizen/20260330-git-push-no-upstream.md) — always use `git push -u origin <branch>` or follow up with `git branch --set-upstream-to`
 

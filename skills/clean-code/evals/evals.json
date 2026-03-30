@@ -1,0 +1,41 @@
+{
+  "skill_name": "clean-code",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Review this function for clean code issues — naming, size, responsibility, and readability:\n\n```python\ndef process(d, f=False):\n    res = []\n    for i in d:\n        if i['a'] > 0:\n            x = i['a'] * i['b']\n            if f:\n                x = round(x, 2)\n            res.append(x)\n    return res\n```",
+      "expected_output": "The skill should identify: (1) parameter names `d`, `f`, `i`, `x`, `res`, `a`, `b` are meaningless — rename to something intent-revealing like `items`, `round_result`, `item`, `value`, `results`, `quantity`, `unit_price`. (2) The boolean flag parameter `f` is a smell — suggests the function does two things; recommend splitting or using an enum. (3) The function name `process` violates the 'reveal intent' rule — rename to something like `calculate_line_totals`. Should apply Uncle Bob's naming rules and flag the boolean flag anti-pattern.",
+      "assertions": [
+        "Renames the function to something intent-revealing (e.g. calculate_line_totals or calculate_order_values)",
+        "Flags the boolean flag parameter `f` as a smell indicating the function does two things",
+        "Proposes splitting the function or removing the flag parameter",
+        "Renames at least 3 of the cryptic variables (d, f, i, x, res, a, b) to descriptive names"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I have a UserService class with these methods: register(), login(), logout(), resetPassword(), updateProfile(), getProfilePicture(), uploadProfilePicture(), resizeImage(), sendWelcomeEmail(), sendPasswordResetEmail(), validateEmailFormat(), validatePasswordStrength(), hashPassword(), generateToken(), verifyToken(). Is this a SOLID violation? What should I do?",
+      "expected_output": "The skill should identify this as a Single Responsibility Principle violation (the class does authentication, profile management, image processing, email delivery, validation, and token management — at least 6 distinct responsibilities). Should propose splitting into: AuthService (login/logout/token), RegistrationService (register/welcome email), ProfileService (update/photo), ImageService (resize), EmailService (send), PasswordService (hash/validate/reset). Should also note this may be an Interface Segregation violation if the class implements a single interface. Should name the refactoring path: Extract Class for each responsibility.",
+      "assertions": [
+        "Identifies this as a Single Responsibility Principle violation",
+        "Proposes at least 4 distinct extracted classes with names and assigned methods",
+        "Names the Extract Class refactoring move explicitly",
+        "Mentions Interface Segregation Principle as a secondary concern"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Review this Python method for clean code issues:\n\n```python\ndef send_invoice(self, order_id):\n    # get the order\n    order = self.db.get_order(order_id)\n    # get the customer email\n    email = order.get_customer().get_contact_info().get_email()\n    # calculate total including tax\n    total = order.get_items_subtotal() * (1 + order.get_customer().get_region().get_tax_rate())\n    # send it\n    self.mailer.send(email, f'Invoice: ${total}')\n```",
+      "expected_output": "The skill should identify: (1) Law of Demeter violations — `order.get_customer().get_contact_info().get_email()` and `order.get_customer().get_region().get_tax_rate()` both traverse the object graph instead of asking Order for what is needed directly; propose `order.get_customer_email()` and `order.get_applicable_tax_rate()`. (2) Redundant comments — every comment restates what the code already says ('# get the order', '# get the customer email', '# send it'); delete them. (3) Mixed abstraction levels — fetching, calculating, and sending all happen in one function; propose extracting `calculate_invoice_total()` and having `send_invoice` delegate at a single level of abstraction. (4) The magic expression `(1 + tax_rate)` should be named or explained.",
+      "assertions": [
+        "Flags the Law of Demeter violation in the chained get_customer().get_contact_info().get_email() and get_customer().get_region().get_tax_rate() calls",
+        "Flags the redundant comments that restate what the code already expresses",
+        "Flags mixed abstraction levels (fetching, calculating, and sending in a single function)",
+        "Proposes extracting the tax calculation into a named method or variable"
+      ],
+      "files": []
+    }
+  ]
+}
