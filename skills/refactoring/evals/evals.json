@@ -5,12 +5,36 @@
       "id": 1,
       "prompt": "Here's a 60-line function that handles a user checkout: validates the cart, calculates discounts, applies tax, charges the card, and sends confirmation emails — all in sequence, no extraction. What specific Fowler refactoring moves should I apply, and in what order?\n\n```python\ndef checkout(cart, user, payment_method):\n    # validate\n    if not cart.items:\n        raise ValueError('Cart is empty')\n    for item in cart.items:\n        if item.quantity <= 0:\n            raise ValueError(f'Invalid quantity for {item.name}')\n        if not item.in_stock:\n            raise ValueError(f'{item.name} is out of stock')\n    # discount\n    subtotal = sum(i.price * i.quantity for i in cart.items)\n    discount = 0\n    if user.is_premium:\n        discount = subtotal * 0.1\n    if subtotal > 100:\n        discount += 5\n    total_before_tax = subtotal - discount\n    # tax\n    tax = total_before_tax * 0.08\n    total = total_before_tax + tax\n    # charge\n    charge_result = payment_method.charge(total)\n    if not charge_result.success:\n        raise PaymentError(charge_result.error)\n    # email\n    send_email(user.email, 'Order confirmed', f'Your total was ${total:.2f}')\n    return {'total': total, 'charge_id': charge_result.id}\n```",
       "expected_output": "The skill should identify and sequence at least: Extract Method for each logical block (validate_cart, calculate_discount, calculate_tax, charge_payment, send_confirmation), possibly Extract Class for discount logic if it grows, and Introduce Parameter Object for cart+user if they travel together. Should name each move explicitly by Fowler's catalog name, explain the motivation, and note the order matters (extract before moving).",
+      "assertions": [
+        "Names at least 3 specific Fowler catalog moves by their exact catalog name (e.g. 'Extract Method', 'Introduce Parameter Object')",
+        "Sequences the moves correctly — Extract Method comes before any Move Method or Extract Class",
+        "Mentions that tests must be green before starting (or that characterization tests should be written if missing)",
+        "Proposes Extract Method for at least the validation block (validate_cart or equivalent)"
+      ],
       "files": []
     },
     {
       "id": 2,
       "prompt": "I have this code and I want to apply 'Replace Conditional with Polymorphism'. Can you walk me through the specific steps?\n\n```python\ndef get_speed(animal_type):\n    if animal_type == 'lion':\n        return 80\n    elif animal_type == 'cheetah':\n        return 120\n    elif animal_type == 'turtle':\n        return 0.5\n    else:\n        raise ValueError(f'Unknown animal: {animal_type}')\n```",
       "expected_output": "The skill should walk through: (1) create an Animal base class/interface with a speed() method, (2) create Lion, Cheetah, Turtle subclasses each overriding speed(), (3) replace the conditional with polymorphic dispatch. Should note when this is and isn't worth doing (justified when the conditional grows, unjustified for 3 stable branches). Should mention that the factory/registry pattern handles the string→class mapping.",
+      "assertions": [
+        "Produces all 3 animal subclasses (Lion, Cheetah, Turtle) each with a speed() method",
+        "Explains when this refactoring is and is NOT worth doing (e.g., justified for growing type lists, overkill for 3 stable branches)",
+        "Addresses the factory or registry pattern for mapping the string ('lion') to the correct class",
+        "Mentions keeping tests green before and after the transformation"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Here's a method that feels wrong but I can't articulate why:\n\n```python\ndef get_next_available_id(self):\n    self._counter += 1\n    if self._counter > self._max_id:\n        self._counter = 1\n    return self._counter\n```\n\nAnd here's another problem I have:\n\n```python\ndef is_eligible_for_discount(self, customer):\n    if customer.account_age_days > 365:\n        return True\n    if customer.total_spend > 1000:\n        return True\n    if customer.is_premium_member:\n        return True\n    return False\n```",
+      "expected_output": "For the first method, the skill should identify the Command-Query Separation (CQS) violation — the method both mutates state (_counter) and returns a value. It should recommend splitting into increment_counter() (command, mutates state, returns nothing) and current_id() (query, pure, no side effects). For the second method, the skill should apply Consolidate Conditional Expression — combine all three conditions into a single expression, ideally extracted into a clearly named helper or collapsed into a one-liner using 'or'.",
+      "assertions": [
+        "Identifies the CQS (Command-Query Separation) violation in get_next_available_id — it both mutates state and returns a value",
+        "Proposes splitting into a command (increment_counter or similar, returns nothing) and a query (current_id or similar, pure read)",
+        "Applies Consolidate Conditional Expression to is_eligible_for_discount — combines the three separate if-return-True blocks into a single expression",
+        "Explains the CQS principle: a method should either answer a question or perform an action, never both"
+      ],
       "files": []
     }
   ]

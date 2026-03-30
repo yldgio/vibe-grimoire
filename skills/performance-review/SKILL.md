@@ -10,7 +10,12 @@ description: >-
   this", "find the bottleneck", "it's too slow in production", "latency issues",
   "memory pressure", "CPU bound or I/O bound?", mentions "Big O", "profiler",
   "cache miss", "lock contention", "performance regression", or asks for a
-  systems-level reality check on an architecture.
+  systems-level reality check on an architecture. Trigger proactively when
+  reviewing any code that runs in a hot path or on every request, when reviewing
+  database queries, when a codebase has nested loops, or when evaluating
+  architecture complexity. Use this skill proactively — not just when something
+  is already slow. Catching O(n²) algorithms before they hit production is
+  always better.
 ---
 
 # Performance Review
@@ -35,7 +40,7 @@ The correct order:
 3. **Fix the bottleneck** (targeted, minimal intervention)
 4. **Measure again** (verify the fix had the expected effect)
 
-Intuition about performance is wrong more often than it is right. Measure everything.
+Intuition about performance is wrong more often than it is right. CPU cache behavior, JIT compilers, and database query planners all behave counter-intuitively — developer intuition about "what's slow" is correct less than 30% of the time. Measure everything.
 
 ---
 
@@ -102,6 +107,10 @@ for order in orders:
     print(order.customer.name)  # no additional queries
 ```
 
+**Why N+1 is the most common database failure**: ORM lazy loading makes each `order.customer` access look like a simple property read — the query fan-out is invisible in code and only reveals itself under load, when a 100-row result set silently triggers 1,000 database round-trips.
+
+**Why caching too aggressively causes correctness bugs**: Caching raw data at a fine-grained level means every cache entry needs independent invalidation logic. When underlying data changes, stale entries produce incorrect results that are nightmarish to debug. Cache computed results at the boundary closest to the consumer — invalidation reasoning stays local.
+
 ---
 
 ## Concurrency and Locking
@@ -113,11 +122,20 @@ Concurrency bugs are the hardest to find and the most expensive in production.
 - A single lock protecting a disproportionately large critical section
 - Lock granularity too coarse — can the lock be per-row instead of per-table?
 
-### Questions to ask
-- Is the lock necessary? Can this be made lock-free with atomic operations?
-- Is the critical section as small as possible?
-- Is there read-write asymmetry? (many readers, few writers → read-write lock is better than mutex)
-- Are there hidden shared resources (global state, shared caches) that aren't obviously locked?
+### Evaluate the lock
+- Eliminate it — can this be made lock-free with atomic operations?
+- Shrink it — is the critical section as small as possible?
+- Specialize it — is there read-write asymmetry? (many readers, few writers → use a read-write lock, not a mutex)
+- Audit hidden sharing — global state, shared caches, and singletons that aren't obviously locked
+
+### Deadlock detection
+Deadlocks occur when two threads each hold a lock the other needs. Signals: threads blocked indefinitely, zero CPU usage, watchdog timeouts firing. Prevention: always acquire multiple locks in the same consistent order across all code paths — never let acquisition order depend on runtime conditions.
+
+### False sharing
+Threads modifying different fields that happen to occupy the same CPU cache line force cache invalidation across cores on every write — this can cause 10× slowdowns in tight loops with no contention otherwise visible. Add padding between hot counters, or use separate cache-line-aligned structures for independently modified fields.
+
+### Immutability as a concurrency tool
+Immutable objects need no locking. Prefer immutable data structures in concurrent code — they eliminate an entire class of bugs and contention. If a structure is read far more often than it is written, prefer update-produces-new-copy semantics over mutating in place.
 
 ---
 
@@ -125,7 +143,7 @@ Concurrency bugs are the hardest to find and the most expensive in production.
 
 Every layer of abstraction has a cost. The question is whether the problem it solves justifies that cost.
 
-### Questions for each abstraction layer
+### Ask for each abstraction layer
 - What concrete operation does this ultimately perform?
 - How many allocations does this create?
 - What's the call depth from the user's request to the actual I/O?
@@ -136,6 +154,26 @@ Every layer of abstraction has a cost. The question is whether the problem it so
 - Middleware chains where most handlers are no-ops for the common path
 - ORM generating inefficient SQL for simple queries — sometimes raw SQL is correct
 - Event systems adding indirection where a direct function call is sufficient
+
+---
+
+## Frontend and API Performance
+
+Performance problems aren't always in backend computation — API surface design and network overhead are frequently the actual bottleneck.
+
+### Response payload size
+- Avoid `SELECT *` and over-fetching — return only the columns the client needs; every unnecessary byte wastes I/O, serialization, and network time
+- Apply pagination at the query level (`LIMIT`/`OFFSET` or cursor-based), not in application code after loading everything
+- Use explicit field lists (GraphQL selections or column projections) to prevent payload bloat that grows as schemas expand
+
+### Connection overhead
+- Enable HTTP keep-alive and connection pooling — a fresh TCP+TLS handshake per request adds 50–200 ms of latency before a byte of data moves
+- Use HTTP/2 multiplexing to eliminate head-of-line blocking when the same client makes concurrent requests
+- Pool database connections — connection establishment is expensive; reuse existing connections across requests
+
+### Compression
+- Apply gzip or brotli compression for large text payloads (JSON, HTML, CSS, JS) — typical reduction of 60–80%
+- Do not compress already-compressed formats (images, video, binary archives) — CPU overhead with no size benefit
 
 ---
 

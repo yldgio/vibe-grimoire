@@ -3,17 +3,20 @@ name: domain-driven-design
 description: >-
   Apply Domain-Driven Design principles: model the core domain, define
   bounded contexts, build context maps, design aggregates, identify domain
-  events, and surface ubiquitous language. Use when the user wants to do DDD,
-  model a complex domain, identify bounded contexts, design aggregates, says
-  "the model feels wrong", "our domain is getting complicated", "we have
-  inconsistent naming across teams", "where should this logic live?",
-  "what's the aggregate root here?", "are these the same bounded context?",
-  "strategic design", "tactical DDD", "what's the core domain?", "this looks
-  like an anti-corruption layer", mentions "DDD", "Evans", "Blue Book",
-  "domain events", "CQRS", "event sourcing" (strategic layer), or asks how
-  to structure a complex multi-team system. Also triggers for: "ubiquitous
-  language", "bounded context", "aggregate", "value object", "domain service",
-  "context map".
+  events, and surface ubiquitous language. Use this skill early — a bad
+  domain model compounds over time. Triggers: when teams argue about where
+  logic should live, when the same word means different things to different
+  teams, when a service is growing out of control, when someone says "our
+  model doesn't match how the business thinks", when preparing a new
+  microservice boundary, when the user says "the model feels wrong", "our
+  domain is getting complicated", "we have inconsistent naming across teams",
+  "where should this logic live?", "what's the aggregate root here?",
+  "are these the same bounded context?", "strategic design", "tactical DDD",
+  "what's the core domain?", "this looks like an anti-corruption layer",
+  mentions "DDD", "Evans", "Blue Book", "domain events", "CQRS",
+  "event sourcing" (strategic layer), or asks how to structure a complex
+  multi-team system. Also triggers for: "ubiquitous language", "bounded
+  context", "aggregate", "value object", "domain service", "context map".
 ---
 
 # Domain-Driven Design
@@ -62,6 +65,8 @@ A **Bounded Context** is the boundary within which a particular domain model app
 
 **Example:** "Order" in a Sales context means a customer's intent to purchase. "Order" in a Fulfillment context means a physical shipment instruction. These are different models that happen to share a name — they belong in separate bounded contexts.
 
+> **Why separate contexts matter:** forcing a single Order model to serve both Sales and Fulfillment creates a model that is correct for neither. Every new feature becomes a negotiation between competing invariants — Sales wants promotions and pricing logic, Fulfillment wants shipment states and picking instructions. Separate the contexts and each model can evolve independently.
+
 ### Context Maps
 
 A **Context Map** documents the relationships between bounded contexts. Name the integration pattern explicitly:
@@ -95,7 +100,7 @@ An **Entity** is an object defined by its identity — not its attributes. Two e
 A **Value Object** is defined entirely by its attributes. Two value objects with the same attributes are interchangeable. Value Objects should be **immutable**.
 
 - No identity — equality is structural
-- Immutable — operations return new instances
+- Immutable — operations return new instances. *Why: mutable value objects create aliasing bugs where two parts of the code hold a reference to the same instance and one silently mutates it; these are extremely hard to debug.*
 - Examples: `Money`, `DateRange`, `Address`, `Color`, `Temperature`
 - Most things that feel like Entities are actually Value Objects. If you don't need to track *which one* it is, it's a Value Object.
 
@@ -107,7 +112,7 @@ An **Aggregate** is a cluster of Entities and Value Objects that form a consiste
 1. Enforce all invariants within the aggregate boundary (transactional consistency)
 2. Reference other aggregates by identity only (no direct object references)
 3. Keep aggregates small — one Aggregate Root, minimal associated objects
-4. One transaction = one aggregate (if you're modifying two aggregates in one transaction, reconsider the model)
+4. One transaction = one aggregate — if you're modifying two aggregates in one transaction, reconsider the model. *Why: this constraint forces you to distinguish what must be consistent right now from what can be eventually consistent. Most coordination requirements dissolve when you think carefully about invariants — what remains reveals real concurrency boundaries.*
 
 **Finding aggregate boundaries:** Ask what invariant you're protecting. The aggregate exists to enforce that invariant atomically. If two objects don't need to be consistent *right now*, they're in different aggregates.
 
@@ -135,8 +140,23 @@ A **Repository** provides collection-like access to aggregates, abstracting pers
 
 - One repository per aggregate root (not per entity)
 - Interface defined in the domain layer; implementation in infrastructure
-- Methods should speak the domain language: `find_all_overdue_orders()` not `select_where_status_eq("late")`
+- Methods should speak the domain language: `find_all_overdue_orders()` not `select_where_status_eq("late")`. *Why: the repository is part of the domain model. SQL-leaking method names are an ACL violation inside your own codebase — they let infrastructure concepts bleed into the place business concepts belong.*
 - Never return lazy-loaded objects that bypass the aggregate boundary
+
+### Specifications
+
+A **Specification** encapsulates a business rule as a predicate object. Use when selection or filtering logic is complex enough to deserve a name and is reused across repositories, domain services, or application code.
+
+- Composable with `and`, `or`, `not` — eliminates `if`-chain sprawl without pushing logic into repositories
+- Testable in isolation — each rule can be unit-tested independently
+- Named for the business concept: `PremiumCustomerSpec`, `OverdueOrderSpec`, `EligibleBorrowerSpec`
+
+```python
+spec = CreditScoreSpec(min_score=700).and_(NoActiveLoanSpec()).and_(AffordabilitySpec(multiplier=24))
+eligible_borrowers = borrower_repo.find_all_satisfying(spec)
+```
+
+When to use: whenever filtering logic is reused across contexts, or when an eligibility rule has a business name that domain experts use.
 
 ---
 

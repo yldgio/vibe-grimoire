@@ -1,16 +1,16 @@
 ---
 name: design-patterns
 description: >-
-  Identify, apply, and explain software design patterns — GoF creational,
-  structural, and behavioral patterns plus enterprise application patterns.
-  Use when the user asks which pattern fits their problem, wants to know if
-  a pattern is being misapplied, needs to choose between patterns, says
-  "what pattern should I use here", "is this a Strategy or a State?",
-  "how do I implement an Observer in my language", "when should I use a Factory
-  vs a Builder", "explain the Decorator pattern", "this code feels like it
-  wants a pattern", mentions "design patterns", "GoF", "PEAA", or asks about
-  any specific pattern by name. Also triggers when code shows a pattern
-  being implemented incorrectly or unnecessarily.
+  Use this skill whenever the user mentions any pattern by name, any code
+  that smells like it wants a pattern, asks about structure, coupling, or
+  abstraction — even if they don't say "design pattern". Don't wait to be
+  asked explicitly. Trigger on: giant if-else chains on type, telescoping
+  constructors, "how do I add behavior without subclassing?", "this is getting
+  messy", "how do I decouple this?", "is this a Strategy or a State?",
+  mentions of GoF, PEAA, Hexagonal Architecture, Ports & Adapters, DDD
+  tactical patterns, or any named pattern. Also triggers when code shows a
+  pattern applied incorrectly, unnecessarily, or when a simpler pattern
+  would serve better than what the user reached for.
 ---
 
 # Design Patterns
@@ -81,6 +81,33 @@ Patterns are named solutions to recurring design problems in a given context. Th
 | **Domain Model** | An object model of the domain that incorporates behavior and data |
 | **Transaction Script** | Organizes business logic by procedures where each procedure handles a single request from the presentation |
 
+### Hexagonal Architecture / Ports & Adapters (Alistair Cockburn)
+
+Hexagonal Architecture (also called Ports & Adapters) is an architectural pattern — not a GoF pattern — that frequently comes up alongside DDD and clean architecture discussions.
+
+**Core idea:** The application sits at the centre. Everything external (databases, HTTP, message queues, UIs, third-party APIs) communicates through **Ports** (interfaces defined by the application) and **Adapters** (implementations of those ports). The application never depends on infrastructure — infrastructure depends on the application.
+
+```
+         [ UI Adapter ]     [ CLI Adapter ]
+                 \               /
+                  +-[ Driving Port ]-+
+                  |                 |
+                  |   APPLICATION   |
+                  |                 |
+                  +-[ Driven Port ]--+
+                 /               \
+        [ DB Adapter ]    [ API Adapter ]
+```
+
+| Concept | Description |
+|---------|-------------|
+| **Driving port** | An interface the application *exposes* to the outside world (e.g., `OrderService`) |
+| **Driven port** | An interface the application *requires* from infrastructure (e.g., `OrderRepository`) |
+| **Adapter** | Concrete implementation of a port (e.g., `SqlOrderRepository`, `RestOrderController`) |
+
+**Use when:** You want to test the application core without a database or HTTP stack, swap infrastructure without touching domain logic, or make the dependency rule explicit.  
+**Pairs with:** `domain-driven-design` skill (Hexagonal is the preferred shell for a DDD Domain Model), `adr` for recording the architectural boundary decision.
+
 ---
 
 ## Process
@@ -91,7 +118,7 @@ Before reaching for a pattern, articulate the problem precisely:
 - What is the coupling you're trying to break?
 - What invariant are you trying to enforce?
 
-A pattern applied without a clear problem statement is decoration, not design.
+**Why this matters:** Patterns are solutions to named problems. If the problem isn't named first, you're matching syntax, not solving intent — and you'll often pick the wrong pattern or apply the right pattern for the wrong reason. A pattern applied without a clear problem statement is decoration, not design.
 
 ### 2. Pattern recognition
 Look at the existing code structure:
@@ -107,6 +134,8 @@ For each candidate pattern, ask:
 - What does this cost? (extra classes, indirection, learning curve)
 - Is the problem likely to recur in a way that justifies the abstraction?
 - Would a simpler approach (a function, a closure, a plain object) do the job?
+
+**Why this matters:** Abstractions have carrying costs — extra files, indirection layers, and cognitive overhead for every future reader. A pattern is justified only when the cost of *not* having the abstraction exceeds the cost of the abstraction itself. Defaulting to the pattern is the same mistake as defaulting to no pattern.
 
 ### 4. Apply the pattern
 - Make the smallest change that introduces the pattern
@@ -126,8 +155,8 @@ If the pattern choice is non-obvious, use `adr` to record:
 
 - **Pattern astronaut** — adding patterns because they're patterns, not because they solve problems. The cost of every abstraction must be justified by the problem it eliminates.
 - **Wrong-dimension variation** — using Strategy when the variation is on state (that's State), using Decorator when you need composition across a hierarchy (that's Composite).
-- **Singleton abuse** — Singleton is global mutable state with extra steps. Prefer dependency injection.
-- **Factory everything** — if construction is simple and stable, a constructor is fine. Factories add indirection that must earn its keep.
+- **Singleton abuse** — Singleton is global mutable state with extra steps. The problem is not the single-instance guarantee — it's that callers become secretly dependent on a hidden global, making the dependency graph invisible, tests brittle (shared state bleeds between runs), and implementations unswappable. Prefer dependency injection so dependencies are explicit and replaceable.
+- **Factory everything** — if construction is simple and stable, a constructor is fine. Factories add indirection that must earn its keep. Reach for a Factory when creation logic is complex, varies by context, or must be deferred — not as a default wrapper around `new`.
 
 ---
 

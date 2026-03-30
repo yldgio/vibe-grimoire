@@ -2,15 +2,20 @@
 name: clean-code
 description: >-
   Audit code for cleanliness: naming, function size and shape, class
-  responsibilities, SOLID violations, and comment hygiene. Use when the user
-  wants a clean code review, a naming audit, wants to apply SOLID principles,
-  asks "is this code clean?", "are these names good?", "this function feels
-  too big", "does this class do too much?", "should I break this up?", "is
-  this DRY?", "does this violate SRP?", mentions "clean code", "Uncle Bob",
-  "SOLID", "single responsibility", "open-closed", "dependency inversion",
-  "interface segregation", or asks for a professional code quality review.
-  Also triggers for: "is this readable?", "rename this", "what should I call
-  this?", "this name is confusing".
+  responsibilities, SOLID violations, comment hygiene, and Law of Demeter
+  violations. Trigger when the user wants a clean code review, a naming audit,
+  wants to apply SOLID principles, asks "is this code clean?", "are these
+  names good?", "this function feels too big", "does this class do too much?",
+  "should I break this up?", "is this DRY?", "does this violate SRP?",
+  mentions "clean code", "Uncle Bob", "SOLID", "single responsibility",
+  "open-closed", "dependency inversion", "interface segregation", "Law of
+  Demeter", "Tell Don't Ask", or asks for a professional code quality review.
+  Also trigger for: "is this readable?", "rename this", "what should I call
+  this?", "this name is confusing". Trigger when a user pastes code and asks
+  for general feedback — even without mentioning "clean". Trigger when
+  reviewing a PR, when naming feels off, when a class is growing too large.
+  When in doubt, run a clean-code pass — it catches issues every other skill
+  misses.
 ---
 
 # Clean Code
@@ -40,7 +45,7 @@ The fundamental question for every code element: **does this tell the truth?**
 ## SOLID Principles
 
 ### S — Single Responsibility Principle
-A class should have **one reason to change**. Not "one job" in the vague sense — one *axis of change*. If a class would need to be modified both when the business rules change AND when the persistence layer changes, it has two responsibilities.
+Give each class **one reason to change** — not "one job" in the vague technical sense, but one *business force* that can cause it to change. Frame responsibility as ownership: ask "which team or which business concern would request a change to this class?" If two different teams can each cause you to open it, it has two owners and two responsibilities. This framing binds SRP to organisational reality, not to arbitrary technical decomposition.
 
 **Signals of violation:**
 - Class name contains "And", "Or", "Manager", "Handler", "Helper", "Utility"
@@ -113,7 +118,7 @@ Naming is the hardest thing in programming and the most impactful. Bad names are
 - If a function needs comments to separate its sections, those sections are separate functions
 
 ### Abstraction levels
-A function that mixes high-level intent with low-level detail is hard to read:
+Never mix high-level intent with low-level detail in the same function. The reader's brain must context-switch between *what the function is doing* and *how it does it* simultaneously — two incompatible cognitive modes at once. Extract low-level blocks into named functions so the caller reads like a table of contents:
 ```
 # Mixed levels — hard to follow
 def process_order(order):
@@ -135,9 +140,36 @@ Either all steps are at the same level, or each low-level block is extracted int
 
 ---
 
+## Law of Demeter — Tell, Don't Ask
+
+A method should only call methods on: itself, its direct fields, objects it creates, and parameters passed directly to it. Reaching through an object to call a method on one of *its* internals is a violation.
+
+`a.getB().getC().doSomething()` is a Demeter violation: the caller is coupled to the internal structure of `a` — that it contains a `B`, and that `B` contains a `C`. When that structure changes, the caller breaks even though it never cared about `B` or `C`.
+
+**Before (violation):**
+```python
+email = order.get_customer().get_contact_info().get_email()
+tax   = order.get_customer().get_region().get_tax_rate()
+```
+
+**After (compliant):**
+```python
+email = order.get_customer_email()    # Order encapsulates the traversal
+tax   = order.get_applicable_tax_rate()
+```
+
+Add the method to the object nearest the data and let the message travel internally. The caller tells the object what it needs; it does not ask for parts and assemble the answer itself.
+
+**Signals of violation:**
+- Method chains with three or more dots
+- Code that navigates an object graph just to extract a leaf value
+- Tests requiring deeply nested mock setups to satisfy internal traversal
+
+---
+
 ## Comment Hygiene
 
-Every comment is a failure to express something in code. That doesn't mean never comment — it means comments should be rare and meaningful.
+Every comment is evidence the code failed to express its intent. Not because comments are inherently bad — but because each comment imposes a maintenance tax: when the code changes, the comment must change too, or it silently becomes a lie. Before writing a comment, try to eliminate the need for it: rename the function, extract a named variable, split the method. Comments should be rare and earned.
 
 **Comments that fail:**
 ```python
@@ -177,10 +209,13 @@ For each function:
 ### 4. SOLID pass
 Check each class against SRP, OCP, LSP, ISP, DIP. List violations with the specific signal that triggered them.
 
-### 5. Comment pass
+### 5. Law of Demeter pass
+Scan for method chains. Flag any chain that traverses more than one object boundary. Propose wrapper methods on the owning object.
+
+### 6. Comment pass
 Read every comment. Ask: does the code explain itself without this comment? If yes, delete it. If no, the name or structure failed — fix that instead where possible.
 
-### 6. Propose changes
+### 7. Propose changes
 For each finding:
 1. State what the issue is (naming failure, SRP violation, etc.)
 2. Show the specific code

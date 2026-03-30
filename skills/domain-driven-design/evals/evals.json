@@ -5,12 +5,36 @@
       "id": 1,
       "prompt": "We're building a multi-tenant SaaS product for project management: projects, tasks, sprints, teams, billing, and reporting. Help us apply Domain-Driven Design: identify the core domain, propose bounded contexts, and sketch a context map with the main relationships and integration patterns.",
       "expected_output": "The skill should: (1) identify the core domain (project execution / task tracking — this is the competitive differentiator), supporting domains (billing, reporting — buy or build conservatively), and generic domains (auth, notifications — buy/OSS). (2) Propose bounded contexts: Project Management, Sprint Planning, Team Management, Billing, Reporting, Identity. (3) Sketch a context map naming integration patterns explicitly: e.g., Billing is Customer/Supplier of Project Management (projects trigger billing events); Reporting is Conformist to Project Management (reads domain data); Identity is Shared Kernel or Generic Service. Should use DDD vocabulary throughout.",
+      "assertions": [
+        "Identifies the core domain correctly (project execution or task tracking as competitive differentiator)",
+        "Names at least 4 bounded contexts",
+        "Names at least 2 integration patterns from the context map (e.g. Customer/Supplier, Conformist, Shared Kernel, ACL)",
+        "Uses DDD vocabulary throughout (ubiquitous language, bounded context, context map, aggregate, domain event)"
+      ],
       "files": []
     },
     {
       "id": 2,
       "prompt": "Our e-commerce platform has a single 'Order' model used everywhere — in the checkout flow, fulfillment, customer service, and finance — and teams keep complaining 'the model feels wrong'. Using DDD, analyze this situation and propose a better design: what bounded contexts do you see, what aggregates and aggregate roots would you define, and how would you use domain events to decouple inventory, payment, and shipping?",
       "expected_output": "The skill should diagnose the 'god object Order' as a missing bounded context problem. Should propose separate contexts: Sales (CustomerOrder aggregate — captures intent, pricing, promotions), Fulfillment (ShipmentOrder aggregate — physical picking/packing/shipping), Finance (Invoice/Payment aggregates). Each 'Order' is a different model with different invariants. Domain events (OrderPlaced, PaymentConfirmed, ShipmentDispatched) decouple the contexts. Should name the anti-pattern (missing ubiquitous language — same word used across contexts) and propose a context map.",
+      "assertions": [
+        "Diagnoses the missing bounded context as the root cause (not a generic code quality problem)",
+        "Proposes at least 2 separate Order models (Sales and Fulfillment at minimum, each with distinct invariants)",
+        "Names domain events for decoupling (e.g. OrderPlaced, PaymentConfirmed, ShipmentDispatched)",
+        "Proposes a context map showing the relationships between the new bounded contexts"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "We're building a lending platform. A Loan has a borrower, an amount, an interest rate, a term, and a status (PENDING, ACTIVE, PAID_OFF, DEFAULTED). We need to check eligibility rules: borrower's credit score > 700, no existing active loans, loan amount < borrower's monthly income * 24. Currently all this logic is in a LoanService with a 200-line eligibility check method. How should we model this using DDD?",
+      "expected_output": "The skill should: (1) identify Loan as an Aggregate Root with clear invariants — status transitions are business rules (PENDING→ACTIVE is an approval decision, ACTIVE→DEFAULTED is a domain event), not arbitrary state updates. (2) Identify the 200-line eligibility check as a Specification pattern opportunity: CreditScoreSpec, NoActiveLoanSpec, and AffordabilitySpec are composable predicates that replace the monolithic if-chain, making each rule independently testable and reusable. (3) Identify Amount, InterestRate, and Term as Value Objects — immutable, validated at construction, not tracked by identity; a Money/Amount value object that validates non-negative values at construction eliminates an entire class of bugs. (4) Identify domain events: LoanApplied, LoanApproved, LoanDefaulted — first-class citizens that enable decoupling (e.g. credit bureau notifications, collection workflows). (5) Push back on the 200-line LoanService as an Anemic Domain Model — eligibility logic that references Loan properties belongs on or near the Loan aggregate, not in a service that reads data and applies rules externally.",
+      "assertions": [
+        "Proposes Loan as an aggregate root with status transitions enforced as business rules (not raw state updates)",
+        "Identifies at least 2 Value Objects (e.g. Amount/Money, InterestRate, Term)",
+        "Mentions the Specification pattern (by name or concept) for eligibility rules, with at least 2 composable specs",
+        "Identifies at least 1 domain event (e.g. LoanApplied, LoanApproved, LoanDefaulted)"
+      ],
       "files": []
     }
   ]

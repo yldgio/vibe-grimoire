@@ -2,14 +2,17 @@
 name: refactoring
 description: >-
   Apply specific behavior-preserving refactoring moves to improve code structure
-  without changing observable behavior. Use when the user wants to apply a
-  specific refactoring, says "extract this method", "move this field", "replace
-  this conditional", "inline this variable", "introduce a parameter object",
-  "pull up this method", "push down this field", asks "how do I refactor this
-  safely?", wants to apply a named refactoring from Fowler's catalog, needs
-  to prepare code for a pattern, or says "I want to clean this up but I'm
-  worried about breaking things". Distinct from refactoring-plan (which plans
-  the overall strategy) — this skill executes specific moves.
+  without changing observable behavior. Trigger when: code has long methods
+  (more than ~20 lines), a user says "this is getting complicated" or "how do
+  I clean this up safely", someone is preparing to apply a design pattern,
+  a method is doing more than one thing, you see Feature Envy or a conditional
+  dispatching on type. Also triggers on: "extract this method", "move this
+  field", "replace this conditional", "inline this variable", "introduce a
+  parameter object", "pull up this method", "push down this field", "how do I
+  refactor this safely?", or any named refactoring from Fowler's catalog. Trigger
+  this skill before applying any design pattern — refactoring prepares the ground.
+  Distinct from refactoring-plan (which plans the overall strategy) — this skill
+  executes specific moves.
 ---
 
 # Refactoring
@@ -32,7 +35,7 @@ Refactoring is not rewriting. It is a sequence of small, mechanical, behavior-pr
 - Is independently understandable
 - Moves toward better structure
 
-The discipline is: **never mix refactoring with behavior change**. Refactor when green. Change behavior when refactored. Never both at once — that's how subtle bugs hide.
+The discipline is: **never mix refactoring with behavior change**. When you mix the two, bugs hide in the transformation — you can't tell if a test failure is a refactoring bug or an intentional behavior change. Refactor when green. Change behavior when refactored. Never both at once.
 
 ---
 
@@ -42,7 +45,7 @@ Before any refactoring move:
 1. **Tests must be passing.** If they're not, fix them first or write characterization tests to lock in current behavior.
 2. **Make the move.** Apply the specific transformation — no logic changes, no "while I'm here" additions.
 3. **Run tests.** They must still pass. If they don't, the move introduced a behavior change — revert immediately.
-4. **Commit.** Each atomic move is a commit. Rollback should always be trivial.
+4. **Commit.** Each atomic move is its own commit — so you can always `git bisect` to pinpoint exactly where behavior changed, and rollback is trivial and surgical.
 
 ---
 
@@ -229,7 +232,9 @@ Apply mechanically: rename in the declaration, update all call sites, run tests.
 ### Decompose Conditional
 **When:** A complex conditional (`if`/`else if`/`else`) is hard to follow. Extract each branch into a named method.
 
-```
+When you name a branch `is_not_summer()` or `winter_charge()`, the branch name communicates intent at a glance. The condition becomes self-documenting — readers understand the *why* without tracing the *how*.
+
+```python
 # Before
 if date.before(SUMMER_START) or date.after(SUMMER_END):
     charge = quantity * winter_rate + winter_service_charge
@@ -244,6 +249,90 @@ else:
 ```
 
 **Risk:** Low.
+
+---
+
+### Consolidate Conditional Expression
+**When:** Multiple conditions all lead to the same result. Combine them into one expression and extract it into a named method.
+
+```python
+# Before
+def get_disability_amount(self):
+    if self.seniority < 2:
+        return 0
+    if self.months_disabled > 12:
+        return 0
+    if self.is_part_time:
+        return 0
+    # ... calculate amount
+
+# After
+def get_disability_amount(self):
+    if self.is_not_eligible_for_disability():
+        return 0
+    # ... calculate amount
+
+def is_not_eligible_for_disability(self):
+    return self.seniority < 2 or self.months_disabled > 12 or self.is_part_time
+```
+
+**Why:** Separate conditions returning the same value are really one check expressed redundantly. Combining them signals to readers that they form a unified intent. The extracted method name replaces a wall of logic with a single readable statement.
+
+**Risk:** Low. Only consolidate conditions that are logically related and serve the same purpose.
+
+---
+
+### Separate Query from Modifier
+**When:** A method both returns a value AND changes state. Split it into two: a pure query (returns a value, no side effects) and a command (changes state, returns nothing).
+
+This is the **Command-Query Separation** principle (Bertrand Meyer): a method should either answer a question *or* perform an action — never both. Mixing the two forces callers to reason about hidden state mutations every time they read a value.
+
+```python
+# Before
+def get_total_outstanding_and_set_ready_for_summary(self):
+    result = sum(o.amount for o in self.orders)
+    self.send_bill()
+    return result
+
+# After
+def total_outstanding(self):   # query — pure, no side effects
+    return sum(o.amount for o in self.orders)
+
+def send_bill(self):           # command — side effect, returns nothing
+    ...
+
+# Caller:
+total = account.total_outstanding()
+account.send_bill()
+```
+
+**Risk:** Low → Medium. Update callers that previously got both effects in one call.
+
+---
+
+### Encapsulate Field
+**When:** A class exposes a public field. Make it private and provide accessor methods.
+
+```python
+# Before
+class Person:
+    name = ""   # public
+
+# After
+class Person:
+    def __init__(self):
+        self._name = ""
+
+    def get_name(self):
+        return self._name
+
+    def set_name(self, value):
+        self._name = value
+```
+
+**Why:** A public field is a contract — every caller reads and writes it directly, making future changes (validation, caching, computed derivations) impossible without breaking all callers. Accessors give you an interception point. Start private; it's trivial to open up, but nearly impossible to lock down after the fact.
+
+**Risk:** Low for the field itself. Medium if the field is referenced across many call sites — update all reads and writes.
 
 ---
 
