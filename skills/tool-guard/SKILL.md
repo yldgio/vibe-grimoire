@@ -56,7 +56,7 @@ Inspect existing config files first and pre-fill what you can infer. Use `ask_us
 - **Task runner** — preferred and blocked
 - **Formatter**, **linter**, **test runner** — preferred and blocked
 - **Extra banned commands** — specific substrings to always block
-- **Mode per category** — `deny` (firm block) or `warn` (advisory — still blocks, but prefixed with ⚠️)
+- **Mode per category** — `deny` (firm block) or `warn` (advisory only; call still proceeds)
 
 ## Step 2: Create canonical files
 
@@ -92,8 +92,7 @@ Plain-English summary: what is blocked, what is warned, what is allowed, and why
 }
 ```
 
-Matching is always **case-insensitive substring**. Both `deny` and `warn` block execution;
-warn prefixes the reason with `⚠️ Advisory:`.
+Matching is always **case-insensitive substring** after stripping quoted string segments from the command. `deny` blocks execution; `warn` emits advisory output and allows the call to proceed.
 
 ## Step 3: Generate runtime files
 

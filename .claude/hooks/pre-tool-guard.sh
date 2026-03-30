@@ -10,6 +10,7 @@ TOOL_NAME="$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')"
 COMMAND="$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty')"
 [ -z "$COMMAND" ] && exit 0
 NORM="$(printf '%s' "$COMMAND" | tr '[:upper:]' '[:lower:]')"
+NORM_STRIPPED="$(printf '%s' "$NORM" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")"
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 POLICY_FILE="$REPO_ROOT/hooks/tool-guard/policy.json"
@@ -22,21 +23,32 @@ deny() {
   exit 0
 }
 
+advisory=""
+
 while IFS= read -r rule; do
   pattern="$(printf '%s' "$rule" | jq -r '.pattern' | tr '[:upper:]' '[:lower:]')"
   reason="$(printf '%s' "$rule" | jq -r '.reason')"
   mode="$(printf '%s' "$rule" | jq -r '.mode')"
-  printf '%s' "$NORM" | grep -qF "$pattern" || continue
-  [ "$mode" = "warn" ] && deny "⚠️ Advisory: $reason" || deny "$reason"
+  printf '%s' "$NORM_STRIPPED" | grep -qF "$pattern" || continue
+  if [ "$mode" = "warn" ]; then
+    [ -n "$advisory" ] || advisory="⚠️ Advisory: $reason"
+    continue
+  fi
+  deny "$reason"
 done < <(printf '%s' "$POLICY" | jq -c '.extra_banned_commands[]? // empty')
 
 while IFS= read -r cat; do
   mode="$(printf '%s' "$cat" | jq -r '.mode')"
   reason="$(printf '%s' "$cat" | jq -r '.reason')"
   while IFS= read -r pattern; do
-    printf '%s' "$NORM" | grep -qiF "$pattern" || continue
-    [ "$mode" = "warn" ] && deny "⚠️ Advisory: $reason" || deny "$reason"
+    printf '%s' "$NORM_STRIPPED" | grep -qiF "$pattern" || continue
+    if [ "$mode" = "warn" ]; then
+      [ -n "$advisory" ] || advisory="⚠️ Advisory: $reason"
+      continue
+    fi
+    deny "$reason"
   done < <(printf '%s' "$cat" | jq -r '.blocked[]? // empty')
 done < <(printf '%s' "$POLICY" | jq -c '.categories | to_entries[] | {mode:.value.mode,reason:.value.reason,blocked:.value.blocked}')
 
+[ -n "$advisory" ] && printf '%s\n' "$advisory" >&2
 exit 0

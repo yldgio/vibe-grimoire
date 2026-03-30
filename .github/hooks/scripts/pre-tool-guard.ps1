@@ -23,6 +23,7 @@ try { $toolArgs = $toolArgsRaw | ConvertFrom-Json } catch { exit 0 }
 $command = Get-ToolCommand $toolArgs
 if ([string]::IsNullOrWhiteSpace($command)) { exit 0 }
 $norm = $command.ToLowerInvariant()
+$normStripped = $norm -replace '"[^"]*"', '' -replace "'[^']*'", ''
 
 $repoRoot   = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
 $policyPath = Join-Path $repoRoot 'hooks\tool-guard\policy.json'
@@ -34,11 +35,16 @@ function Deny([string]$reason) {
     exit 0
 }
 
+$advisory = $null
+
 foreach ($rule in $policy.extra_banned_commands) {
     $pattern = ([string]$rule.pattern).ToLowerInvariant()
-    if (-not $norm.Contains($pattern)) { continue }
-    if ([string]$rule.mode -eq 'warn') { Deny "⚠️ Advisory: $([string]$rule.reason)" }
-    else { Deny ([string]$rule.reason) }
+    if (-not $normStripped.Contains($pattern)) { continue }
+    if ([string]$rule.mode -eq 'warn') {
+        if ([string]::IsNullOrWhiteSpace($advisory)) { $advisory = "⚠️ Advisory: $([string]$rule.reason)" }
+        continue
+    }
+    Deny ([string]$rule.reason)
 }
 
 foreach ($prop in $policy.categories.PSObject.Properties) {
@@ -46,10 +52,14 @@ foreach ($prop in $policy.categories.PSObject.Properties) {
     $mode   = [string]$cat.mode
     $reason = [string]$cat.reason
     foreach ($pattern in $cat.blocked) {
-        if (-not $norm.Contains($pattern.ToLowerInvariant())) { continue }
-        if ($mode -eq 'warn') { Deny "⚠️ Advisory: $reason" }
-        else { Deny $reason }
+        if (-not $normStripped.Contains($pattern.ToLowerInvariant())) { continue }
+        if ($mode -eq 'warn') {
+            if ([string]::IsNullOrWhiteSpace($advisory)) { $advisory = "⚠️ Advisory: $reason" }
+            continue
+        }
+        Deny $reason
     }
 }
 
+if (-not [string]::IsNullOrWhiteSpace($advisory)) { [Console]::Error.WriteLine($advisory) }
 exit 0
