@@ -17,6 +17,7 @@ Project scope is the right default for team repos.
 - `PreToolUse` stdin: `{ "session_id": "...", "hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": { "command": "..." } }`
 - ⚠️ `tool_input` is **already a parsed JSON object** (unlike Copilot CLI where `toolArgs` is a string)
 - Deny: write `{ "hookSpecificOutput": { "hookEventName": "PreToolUse", "permissionDecision": "deny", "permissionDecisionReason": "..." } }` to stdout, exit 0
+- Warn: print advisory to stderr, exit 0 (non-blocking)
 - Allow: exit 0 with no output
 
 ## `.claude/settings.json` (project scope)
@@ -56,6 +57,7 @@ TOOL_NAME="$(printf '%s' "$INPUT" | jq -r '.tool_name // empty')"
 COMMAND="$(printf '%s' "$INPUT" | jq -r '.tool_input.command // empty')"
 [ -z "$COMMAND" ] && exit 0
 NORM="$(printf '%s' "$COMMAND" | tr '[:upper:]' '[:lower:]')"
+NORM_STRIPPED="$(printf '%s' "$NORM" | sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g")"
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 POLICY_FILE="$REPO_ROOT/hooks/tool-guard/policy.json"
@@ -68,23 +70,34 @@ deny() {
   exit 0
 }
 
+advisory=""
+
 while IFS= read -r rule; do
   pattern="$(printf '%s' "$rule" | jq -r '.pattern' | tr '[:upper:]' '[:lower:]')"
   reason="$(printf '%s' "$rule" | jq -r '.reason')"
   mode="$(printf '%s' "$rule" | jq -r '.mode')"
-  printf '%s' "$NORM" | grep -qF "$pattern" || continue
-  [ "$mode" = "warn" ] && deny "⚠️ Advisory: $reason" || deny "$reason"
+  printf '%s' "$NORM_STRIPPED" | grep -qF "$pattern" || continue
+  if [ "$mode" = "warn" ]; then
+    [ -n "$advisory" ] || advisory="⚠️ Advisory: $reason"
+    continue
+  fi
+  deny "$reason"
 done < <(printf '%s' "$POLICY" | jq -c '.extra_banned_commands[]? // empty')
 
 while IFS= read -r cat; do
   mode="$(printf '%s' "$cat" | jq -r '.mode')"
   reason="$(printf '%s' "$cat" | jq -r '.reason')"
   while IFS= read -r pattern; do
-    printf '%s' "$NORM" | grep -qiF "$pattern" || continue
-    [ "$mode" = "warn" ] && deny "⚠️ Advisory: $reason" || deny "$reason"
+    printf '%s' "$NORM_STRIPPED" | grep -qiF "$pattern" || continue
+    if [ "$mode" = "warn" ]; then
+      [ -n "$advisory" ] || advisory="⚠️ Advisory: $reason"
+      continue
+    fi
+    deny "$reason"
   done < <(printf '%s' "$cat" | jq -r '.blocked[]? // empty')
 done < <(printf '%s' "$POLICY" | jq -c '.categories | to_entries[] | {mode:.value.mode,reason:.value.reason,blocked:.value.blocked}')
 
+[ -n "$advisory" ] && printf '%s\n' "$advisory" >&2
 exit 0
 ```
 
@@ -108,6 +121,7 @@ if ($payload.tool_name -ne 'Bash') { exit 0 }
 $command = $payload.tool_input?.command
 if ([string]::IsNullOrWhiteSpace($command)) { exit 0 }
 $norm = $command.ToLowerInvariant()
+$normStripped = $norm -replace '"[^"]*"', '' -replace "'[^']*'", ''
 
 $repoRoot   = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $policyPath = Join-Path $repoRoot 'hooks\tool-guard\policy.json'
@@ -128,11 +142,15 @@ function Deny([string]$reason) {
 
 # Use char codes for ⚠️ (U+26A0 U+FE0F) — avoids source-file encoding issues on Windows
 $warn = "$([char]0x26A0)$([char]0xFE0F)"
+$advisory = $null
 
 foreach ($rule in $policy.extra_banned_commands) {
-    if (-not $norm.Contains(([string]$rule.pattern).ToLowerInvariant())) { continue }
-    if ([string]$rule.mode -eq 'warn') { Deny "$warn Advisory: $([string]$rule.reason)" }
-    else { Deny ([string]$rule.reason) }
+    if (-not $normStripped.Contains(([string]$rule.pattern).ToLowerInvariant())) { continue }
+    if ([string]$rule.mode -eq 'warn') {
+        if ([string]::IsNullOrWhiteSpace($advisory)) { $advisory = "$warn Advisory: $([string]$rule.reason)" }
+        continue
+    }
+    Deny ([string]$rule.reason)
 }
 
 foreach ($prop in $policy.categories.PSObject.Properties) {
@@ -140,12 +158,16 @@ foreach ($prop in $policy.categories.PSObject.Properties) {
     $mode   = [string]$cat.mode
     $reason = [string]$cat.reason
     foreach ($pattern in $cat.blocked) {
-        if (-not $norm.Contains($pattern.ToLowerInvariant())) { continue }
-        if ($mode -eq 'warn') { Deny "$warn Advisory: $reason" }
-        else { Deny $reason }
+        if (-not $normStripped.Contains($pattern.ToLowerInvariant())) { continue }
+        if ($mode -eq 'warn') {
+            if ([string]::IsNullOrWhiteSpace($advisory)) { $advisory = "$warn Advisory: $reason" }
+            continue
+        }
+        Deny $reason
     }
 }
 
+if (-not [string]::IsNullOrWhiteSpace($advisory)) { [Console]::Error.WriteLine($advisory) }
 exit 0
 ```
 
@@ -156,7 +178,11 @@ exit 0
 echo '{"tool_name":"Bash","tool_input":{"command":"git status"}}' \
   | .claude/hooks/pre-tool-guard.sh
 
-# Should deny (adjust pattern to match your policy)
+# Should warn only (non-blocking; advisory on stderr)
 echo '{"tool_name":"Bash","tool_input":{"command":"npm install"}}' \
+  | .claude/hooks/pre-tool-guard.sh
+
+# Should allow (quoted text content is ignored for matching)
+echo '{"tool_name":"Bash","tool_input":{"command":"git commit -m \"contains npm run text only\""}}' \
   | .claude/hooks/pre-tool-guard.sh
 ```
