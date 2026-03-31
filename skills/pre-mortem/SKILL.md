@@ -25,7 +25,7 @@ description: >-
 
 In both modes: walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.
 
-If a question can be answered by exploring the codebase, explore the codebase instead. Always use subagents to explore the codebase.
+If a question can be answered by exploring the codebase, explore the codebase instead. Always use subagents to explore the codebase or for research.
 
 ## Complexity challenge
 
