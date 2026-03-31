@@ -46,6 +46,8 @@ Break the PRD into **tracer bullet** phases. Each phase is a thin vertical slice
 - DO include durable decisions: route paths, schema shapes, data model names
 </vertical-slice-rules>
 
+When the PRD is large or complex — many stories, broad surface area, or multiple cross-cutting concerns — group phases into **waves**. The first wave must deliver a demonstrable, MVP-sufficient experience on its own. Subsequent waves add depth and breadth. When grouping phases within a wave, prefer phases that share no blocking dependencies so they can proceed in parallel.
+
 ### 5. Quiz the user
 
 Present the proposed breakdown as a numbered list. For each phase show:
@@ -57,6 +59,7 @@ Ask the user:
 
 - Does the granularity feel right? (too coarse / too fine)
 - Should any phases be merged or split further?
+- If waves were proposed: does Wave 1 represent a sufficient MVP? Are the wave boundaries right?
 
 Iterate until the user approves the breakdown.
 
@@ -79,6 +82,11 @@ Durable decisions that apply across all phases:
 - (add/remove sections as appropriate)
 
 ---
+
+<!-- If wave grouping was agreed with the user, wrap phases inside ## Wave N sections.
+     Omit wave headers for simple features. -->
+
+## Wave 1: MVP *(omit wave headers if no wave grouping)*
 
 ## Phase 1: <Title>
 
@@ -108,5 +116,23 @@ A concise description of this vertical slice. Describe the end-to-end behavior, 
 
 - [ ] ...
 
-<!-- Repeat for each phase -->
+---
+
+## Wave 2: <Label> *(omit if no wave grouping)*
+
+## Phase 3: <Title>
+
+**User stories**: <list from PRD>
+
+### What to build
+
+...
+
+### Acceptance criteria
+
+- [ ] ...
+
+<!-- Repeat phases and waves as needed -->
 </plan-template>
+
+The skill's work is complete when the plan file is saved and the user has confirmed the phase breakdown. Return control to the user.

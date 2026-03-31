@@ -28,7 +28,11 @@ Use a subagent to explore the repo and verify the user's assertions. Understand 
 
 Relentlessly interview the user about every aspect of the plan until you reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
 
-> Tip: Invoke the `pre-mortem` skill for deeper design stress-testing before committing to decisions.
+As user stories accumulate, continuously assess the overall complexity of the feature. When the scope feels large — many moving parts, cross-cutting concerns, or a broad user-facing surface area — challenge the user to identify a first sufficient MVP wave before expanding further. Ask: *"What is the smallest version of this that delivers real value?"* This is not about counting stories; it is about understanding whether the work can be meaningfully shipped in phases.
+
+### 3a. Pre-mortem stress-test *(optional)*
+
+If the PRD is growing large, assumptions are unclear, or requirements conflict, pause here and invoke the `pre-mortem` skill before proceeding to Step 4. It will interrogate the design, surface contradictions, and return either a risk document or an annotated PRD. Resume from Step 4 once pre-mortem is complete.
 
 ### 4. Design modules *(optional — skip if the user wants a lightweight PRD)*
 
@@ -73,6 +77,16 @@ A LONG, numbered list of user stories. Each user story should be in the format o
 
 This list of user stories should be extremely extensive and cover all aspects of the feature.
 
+## Implementation Waves *(omit for small features)*
+
+When the feature is complex — many stories, broad surface area, or multiple cross-cutting concerns — describe how delivery will be broken into successive waves. Each wave should be independently demonstrable and deliver a coherent user experience on its own.
+
+- **Wave 1 (MVP)**: The smallest version that delivers real value. Define what "done" looks like for this wave.
+- **Wave 2**: Additional depth or breadth that builds on Wave 1.
+- *(add waves as needed)*
+
+Prefer grouping stories into waves so that parallel workstreams within a wave share no blocking dependencies.
+
 ## Implementation Decisions
 
 A list of implementation decisions that were made. This can include:
@@ -104,3 +118,5 @@ A description of the things that are out of scope for this PRD.
 Any further notes about the feature.
 
 </prd-template>
+
+The skill's work is complete when the PRD has been submitted to the user's chosen destination. Return control to the user.

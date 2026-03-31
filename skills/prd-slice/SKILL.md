@@ -55,6 +55,8 @@ Prefer AFK slices where possible.
 - Prefer many thin slices over few thick ones
 </vertical-slice-rules>
 
+When the PRD involves many slices — broad scope, many cross-cutting concerns — propose **wave grouping** to the user before creating work items. Group slices into waves where Wave 1 delivers a standalone, MVP-sufficient experience on its own. Subsequent waves add depth and breadth. Label each slice with its wave (e.g. `[Wave 1]`, `[Wave 2]`) so the tracker reflects delivery order and teams can plan parallel workstreams within a wave.
+
 ### 4. Quiz the user
 
 Present the proposed breakdown as a numbered list. For each slice show:
@@ -69,6 +71,7 @@ Ask the user:
 - Are the dependency relationships correct?
 - Should any slices be merged or split further?
 - Are the HITL / AFK labels right?
+- If waves were proposed: does Wave 1 represent a sufficient MVP? Are the wave boundaries right?
 
 Iterate until the user approves the breakdown.
 
