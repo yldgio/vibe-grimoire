@@ -3,6 +3,10 @@ Project: Curated collection of reusable agentic skills, hooks, and agent configs
 Stack: Markdown, YAML, JSON — configuration only, no build step.
 Key paths: `skills/` published skills · `hooks/` canonical policies · `.github/hooks/` + `.opencode/plugins/` runtime outputs · `.agents/skills/` local runtime skills · `kaizen/` continuous-improvement notes (auto-written by the kaizen skill on every correction)
 
+## Memory
+
+If `memento-memento_context_assemble` is available, call it at the start of each session with `project="vibe-grimoire"` to load persisted context. Use the memento tools to log non-obvious decisions and patterns discovered during the session — not facts already documented here. Skip entirely if the tool is not present.
+
 ## Kaizen Learnings
 
 <!-- Populated automatically by the kaizen skill. One line per entry. -->
