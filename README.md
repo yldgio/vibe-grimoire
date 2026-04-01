@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-25-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-26-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -217,6 +217,32 @@ Assumes the plan already failed, then interrogates every branch of the decision 
 
 ```
 skills/pre-mortem/SKILL.md
+```
+
+---
+
+### `adversarial-review`
+
+Launch a multi-model adversarial review panel to stress-test code, architecture, PRDs, pull requests, or documentation — before a flaw becomes a production incident.
+
+Three specialized reviewers run in parallel, each powered by a different AI model and assigned a distinct attack vector:
+
+| Reviewer | Model | Attack Vector |
+|----------|-------|---------------|
+| 🔴 **The Skeptic** | GPT-5.4 | Challenges the fundamental design — *"Why this approach at all?"* |
+| ⚡ **The Executioner** | Claude Sonnet 4.6 | Hunts failure modes, edge cases, and correctness issues |
+| 🔨 **The Pragmatist** | GPT-5.3-Codex | Attacks real-world viability — maintainability, operability, hidden costs |
+
+- **Automatic scaling** — simple tasks get a gentle pushback ("is this really worth a full panel?"); medium tasks use 1–2 reviewers; complex tasks (system designs, large PRs, cross-cutting changes) use all 3
+- **Convergence detection** — issues flagged independently by multiple reviewers are surfaced as near-certainties
+- **Explicit dissents** — genuine conflicts between reviewers are preserved, not collapsed into false consensus
+- **Verdict** — every review ends with 🔴 DO NOT PROCEED / 🟡 CONDITIONAL / 🟢 PROCEED WITH CAUTION
+
+Pairs naturally with `pre-mortem` (stress-test designs before building) and feeds into `refactoring`, `design-patterns`, `tdd`, or `clean-code` for remediation.
+
+```
+skills/adversarial-review/SKILL.md
+skills/adversarial-review/evals/evals.json
 ```
 
 ---
@@ -547,6 +573,7 @@ Runtime hook scripts in `.github/hooks/` (Copilot CLI) and `.claude/hooks/` (Cla
 
 ```
 skills/           # Published skills — source of truth
+├── adversarial-review/
 ├── adr/
 ├── az-devops-cli/
 ├── boris/

@@ -1,0 +1,46 @@
+{
+  "skill_name": "adversarial-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I've just finished a major refactor of our payment processing service. We moved from a monolith to an event-driven architecture using Kafka. The new design publishes a PaymentRequested event, a PaymentProcessor service consumes it, and the result is published back as PaymentProcessed or PaymentFailed. We also added idempotency keys on each event. Can you adversarially review this design? Here's the main service file: src/payments/PaymentService.ts and the Kafka consumer: src/consumers/PaymentConsumer.ts",
+      "expected_output": "The skill should classify this as Complex (event-driven system refactor, cross-cutting concerns, broad impact) and launch all 3 reviewers in parallel. The Skeptic (GPT-5.4) should challenge the fundamental approach: is Kafka the right tool here, what happens to the synchronous payment confirmation UX, is event sourcing adding accidental complexity? The Executioner (claude-sonnet-4.6) should hunt for failure modes: what happens if PaymentProcessor crashes mid-processing, is exactly-once delivery guaranteed, are idempotency keys scoped correctly, what's the failure behavior when Kafka is unavailable? The Pragmatist (gpt-5.3-codex) should attack production viability: how is this monitored, how do you replay failed events, what's the operational burden of managing consumer lag? The synthesis should include a Convergence section highlighting any issues raised by multiple reviewers, and a Verdict.",
+      "assertions": [
+        "Classifies the task as Complex and launches 3 reviewers",
+        "Launches all 3 reviewers (The Skeptic, The Executioner, The Pragmatist) in parallel",
+        "The Skeptic challenges the fundamental design choice, not just implementation details",
+        "The Executioner identifies at least one failure mode related to event delivery or processing guarantees",
+        "The Pragmatist addresses operational/production concerns (monitoring, replay, observability)",
+        "The synthesis includes a Convergence section",
+        "The synthesis includes a Verdict (DO NOT MERGE / CONDITIONAL / PROCEED WITH CAUTION)",
+        "Dissents section is present if reviewers reached conflicting conclusions"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I'm thinking of adding a Redis cache in front of our user profile endpoint. The endpoint gets ~500 req/s and most profiles don't change often. I'd cache with a 5-minute TTL. Adversarially review this approach before I implement it.",
+      "expected_output": "The skill should classify this as Medium complexity (a self-contained caching decision, moderate blast radius). It should launch 1-2 reviewers — 2 is reasonable here given architectural implications. The Executioner should probe correctness: what happens when a profile updates during the TTL window, how is cache invalidation handled, what's the behavior on cache miss under high load (thundering herd), what if Redis goes down? The Skeptic should challenge the premise: is 500 req/s actually enough to need caching (what's the DB query cost?), are there staleness scenarios that could cause user-visible bugs, is 5-minute TTL too long for sensitive profile data? No need for The Pragmatist unless the reviewer count escalates to 3.",
+      "assertions": [
+        "Classifies the task as Medium and does NOT launch all 3 reviewers by default",
+        "Launches 1-2 reviewers (not 3)",
+        "At least one reviewer surfaces the thundering herd problem or cache stampede risk",
+        "At least one reviewer questions whether the TTL duration is appropriate for the data type",
+        "The review includes a Verdict"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I just renamed the variable `tmp` to `tempValue` in our utils file. Can you adversarially review this change?",
+      "expected_output": "The skill should classify this as Simple (a trivial rename with no architectural or behavioral impact) and push back gently. It should tell the user that a full adversarial panel is probably overkill for a variable rename and offer to proceed anyway or do a quick inline review instead. It should NOT immediately spawn agents or launch a full review without checking with the user first.",
+      "assertions": [
+        "Classifies the task as Simple",
+        "Pushes back and asks the user whether to proceed with the full panel",
+        "Does NOT immediately spawn adversarial reviewer agents without user confirmation",
+        "The pushback is friendly and not dismissive — it offers alternatives"
+      ],
+      "files": []
+    }
+  ]
+}
