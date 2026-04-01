@@ -569,6 +569,61 @@ Runtime hook scripts in `.github/hooks/` (Copilot CLI) and `.claude/hooks/` (Cla
 
 ---
 
+## Extensions
+
+Copilot CLI extensions live in `.github/extensions/<name>/extension.mjs` (project-level, active only in this repo) or `~/.copilot/extensions/<name>/extension.mjs` (user-level, always active).
+
+### `notify` *(Windows only)*
+
+Gives agents two tools for alerting you at the end of long tasks — without requiring you to watch the screen.
+
+| Tool | What it does |
+|------|-------------|
+| `notify_speak(text, language?)` | Reads text aloud via Windows SAPI (Text-To-Speech). Pass the BCP-47 language tag (e.g. `it-IT`, `en-US`) so the right voice is selected. |
+| `notify_toast(title, message)` | Shows a balloon notification in the Windows system tray. Stays for ~5 s then disposes itself. |
+
+**Requirements:** Windows · Node.js ≥ 18 · no extra installs (uses built-in .NET assemblies `System.Speech` + `System.Windows.Forms`)
+
+**Install — project-level** (active only inside this repo):
+
+Already included — no action needed if you cloned this repo. To add it to another project, copy the file:
+
+```bash
+# macOS / Linux
+mkdir -p .github/extensions/notify
+cp /path/to/vibe-grimoire/.github/extensions/notify/extension.mjs \
+   .github/extensions/notify/
+
+# Windows
+mkdir .github\extensions\notify
+copy path\to\vibe-grimoire\.github\extensions\notify\extension.mjs ^
+     .github\extensions\notify\
+```
+
+**Install — user-level** (available in every project, always):
+
+```bash
+# macOS / Linux
+mkdir -p ~/.copilot/extensions/notify
+cp .github/extensions/notify/extension.mjs ~/.copilot/extensions/notify/
+
+# Windows (PowerShell)
+New-Item -ItemType Directory -Force "$env:USERPROFILE\.copilot\extensions\notify"
+Copy-Item .github\extensions\notify\extension.mjs `
+          "$env:USERPROFILE\.copilot\extensions\notify\"
+```
+
+Then reload: type `/clear` inside a Copilot CLI session, or restart the terminal.
+
+> **⚠️ Platform note:** `notify_speak` and `notify_toast` use Windows-only .NET assemblies (`System.Speech`, `System.Windows.Forms`). The extension loads on macOS/Linux but the tools will return an error at runtime. Cross-platform support (macOS `say`, Linux `espeak` / `notify-send`, OpenCode plugin) is planned.
+
+```
+.github/extensions/notify/extension.mjs   # extension source
+.github/extensions/notify/README.md       # full reference with security notes
+```
+
+---
+
 ## Repo Structure
 
 ```
@@ -601,7 +656,9 @@ skills/           # Published skills — source of truth
 └── triage-bug/
 
 .github/
-└── agents/       # The Immortals persona agents
+├── agents/       # The Immortals persona agents
+└── extensions/   # Copilot CLI extensions
+    └── notify/   # TTS + system tray notifications (Windows)
 
 hooks/            # Canonical tool policies for this repo
 .github/hooks/    # Copilot CLI runtime hook outputs
