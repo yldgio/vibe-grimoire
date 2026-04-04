@@ -51,7 +51,11 @@ Shows a balloon notification in the Windows system tray via `System.Windows.Form
 - **Python + edge-tts** *(recommended)* — enables high-quality neural voices. Install once:
   ```bash
   pip install edge-tts
+  # or with uv (global)
+  uv pip install edge-tts
   ```
+  > ⚠️ `uv add edge-tts` works only if the project venv is activated at runtime. Prefer `uv pip install` for a global install.
+
   If not installed, `notify_speak` falls back to Windows SAPI automatically (lower quality, English-only voices by default).
 
 > No account or API key required for Edge TTS — it uses the same infrastructure as Microsoft Edge's Read Aloud feature.
@@ -120,7 +124,7 @@ Extensions are loaded at session start. To pick up a newly added extension witho
 
 - **Windows** — `notify_speak` and `notify_toast` both depend on Windows-only .NET assemblies. The extension loads on other platforms but the tools will fail at runtime.
 - **Node.js in PATH** — already required by Copilot CLI itself; no separate install needed.
-- **Python + edge-tts** *(for best voice quality)* — install once with `pip install edge-tts`. Without it, the extension falls back to Windows SAPI automatically.
+- **Python + edge-tts** *(for best voice quality)* — install once with `pip install edge-tts` or `uv pip install edge-tts`. Without it, the extension falls back to Windows SAPI automatically.
 
 ### Verifying the install
 
