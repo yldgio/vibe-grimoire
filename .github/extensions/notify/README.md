@@ -12,14 +12,25 @@ Exposes two tools that agents can call at the end of long tasks to alert the use
 
 ### `notify_speak(text, language?)`
 
-Reads `text` aloud via Windows SAPI (`System.Speech.Synthesis.SpeechSynthesizer`).
+Reads `text` aloud using **Edge TTS** (Microsoft neural voices, free, no account required) with automatic fallback to Windows SAPI if Edge TTS is unavailable or offline.
 
 | Parameter | Type   | Required | Description |
 |-----------|--------|----------|-------------|
 | `text`    | string | ✅       | Text to be spoken (max 500 characters). |
-| `language` | string | ❌      | BCP-47 language tag (e.g. `it-IT`, `en-US`, `fr-FR`). Selects the matching SAPI voice. If omitted, the system default voice is used. |
+| `language` | string | ❌      | BCP-47 language tag (e.g. `it-IT`, `en-US`, `fr-FR`). Selects the matching neural voice. Defaults to `it-IT`. |
 
-The LLM already knows the language of the text it generates and should always pass `language` explicitly. This is more accurate and more flexible than any heuristic — it supports any installed SAPI voice, not just Italian and English.
+The LLM already knows the language of the text it generates and should always pass `language` explicitly.
+
+**Voice map (Edge TTS):**
+
+| Language | Voice |
+|----------|-------|
+| `it-IT`  | `it-IT-IsabellaNeural` |
+| `en-US`  | `en-US-JennyNeural` |
+| `en-GB`  | `en-GB-SoniaNeural` |
+| `fr-FR`  | `fr-FR-DeniseNeural` |
+| `de-DE`  | `de-DE-KatjaNeural` |
+| `es-ES`  | `es-ES-ElviraNeural` |
 
 ### `notify_toast(title, message)`
 
@@ -34,14 +45,16 @@ Shows a balloon notification in the Windows system tray via `System.Windows.Form
 
 ## Requirements
 
-- **Windows** — uses `System.Speech` and `System.Windows.Forms` (.NET assemblies, built-in on Windows).
+- **Windows** — uses `System.Windows.Media` (WPF, for MP3 playback) and `System.Speech` (SAPI fallback), both built-in on Windows.
 - **Node.js ≥ 18** — the extension uses top-level `await` (ESM).
 - **`@github/copilot-sdk`** — installed automatically when the extension is loaded by Copilot CLI.
-- **SAPI voices** — the default Windows voices (`Microsoft David` for en-US, `Microsoft Zira` for en-US) are always available. For higher-quality output install:
-  - **it-IT**: `Microsoft Elsa` (Windows 10/11 natural voice) or any third-party Italian SAPI5 voice.
-  - **en-US**: `Microsoft Mark` / `Microsoft Aria` (Windows 11 neural voices).
+- **Python + edge-tts** *(recommended)* — enables high-quality neural voices. Install once:
+  ```bash
+  pip install edge-tts
+  ```
+  If not installed, `notify_speak` falls back to Windows SAPI automatically (lower quality, English-only voices by default).
 
-> Voices can be installed from **Settings → Time & language → Speech → Add voices**.
+> No account or API key required for Edge TTS — it uses the same infrastructure as Microsoft Edge's Read Aloud feature.
 
 ---
 
@@ -54,9 +67,10 @@ agent calls notify_speak("Operazione completata!", "it-IT")
   └─► length check: 23 chars ≤ 500 ✓
   └─► language validation: "it-IT" matches /^[a-z]{2,3}-[A-Z]{2,4}$/ ✓
   └─► static PS script → base64-encode → execFile("powershell", ["-EncodedCommand", ...], { timeout: 30000 })
-      env: { NOTIFY_TEXT: "Operazione completata!", NOTIFY_LANG: "it-IT" }
-  └─► PowerShell reads $env:NOTIFY_LANG → selects Italian SAPI voice
-  └─► PowerShell reads $env:NOTIFY_TEXT → speaks the text
+      env: { NOTIFY_TEXT: "Operazione completata!", NOTIFY_VOICE: "it-IT-IsabellaNeural" }
+  └─► PowerShell: python -m edge_tts --voice $env:NOTIFY_VOICE --text $env:NOTIFY_TEXT --write-media tmp.mp3
+  └─► PowerShell: WPF MediaPlayer plays tmp.mp3 → cleanup
+  └─► [fallback] if edge-tts fails → SAPI SpeechSynthesizer.Speak($env:NOTIFY_TEXT)
 ```
 
 `execFile` (not `exec`) is used — no shell process, no shell parsing. The 30-second timeout kills any runaway TTS process automatically.
@@ -104,9 +118,9 @@ Extensions are loaded at session start. To pick up a newly added extension witho
 
 ### Prerequisites
 
-- **Windows** — `notify_speak` and `notify_toast` both depend on Windows-only .NET assemblies (`System.Speech`, `System.Windows.Forms`). The extension loads on other platforms but the tools will fail at runtime.
+- **Windows** — `notify_speak` and `notify_toast` both depend on Windows-only .NET assemblies. The extension loads on other platforms but the tools will fail at runtime.
 - **Node.js in PATH** — already required by Copilot CLI itself; no separate install needed.
-- **TTS voices** — built-in voices (`Microsoft David`, `Microsoft Zira`) are always present. For better quality, install additional voices from **Settings → Time & Language → Speech → Add voices**.
+- **Python + edge-tts** *(for best voice quality)* — install once with `pip install edge-tts`. Without it, the extension falls back to Windows SAPI automatically.
 
 ### Verifying the install
 
