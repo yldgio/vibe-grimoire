@@ -3,7 +3,7 @@ name: pre-mortem
 description: >-
   Run a pre-mortem on a plan, idea, or PRD: stress-test a design by assuming it
   failed, then relentlessly interrogate every branch of the decision tree to
-  find out why — and fix it before you start. Two modes: (1) idea/plan
+  find out why so the user can fix it before implementation starts. Two modes: (1) idea/plan
   exploration — no document yet, use pre-mortem to surface implications and
   shape a design; (2) PRD stress-test — an existing PRD or design doc, use
   pre-mortem to expose contradictions, missing assumptions, and functional
@@ -14,8 +14,10 @@ description: >-
 
 # Pre-mortem
 
+Stress-test a plan before implementation so hidden assumptions fail on paper, not in execution.
+
 **Skill workflow** — pre-mortem can be used standalone or as a gate between steps:
-[`create-prd`](#) *(gather requirements)* → **`pre-mortem`** *(stress-test before building)* → [`plan-from-prd`](#) *(phase it out)*
+[`create-prd`](#) *(gather requirements)* → **`pre-mortem`** *(stress-test before building)* → [`plan-from-prd`](#) *(turn it into implementation phases)*
 
 ## Two modes
 
@@ -23,9 +25,11 @@ description: >-
 
 **Mode 2 — PRD stress-test**: The user has an existing PRD, plan, or design doc. Read it first, then interrogate every assumption, surface contradictions, and explore functional ramifications they may not have considered.
 
-In both modes: walk down each branch of the design tree, resolving dependencies between decisions one-by-one. For each question, provide your recommended answer.
+In both modes: start with the context already available — current documents, prior decisions, and relevant codebase context. Then walk down each unresolved branch of the design tree, resolving dependencies between decisions one-by-one. For each unresolved question, provide your recommended answer.
 
-If a question can be answered by exploring the codebase, explore the codebase instead. Always use subagents to explore the codebase or for research.
+If a question can be answered by exploring the codebase or existing documents, do that before asking the user. Use subagents for codebase exploration or external research so the main thread stays focused on the pre-mortem.
+
+When you need input from the user, ask one question at a time. Don't move on to the next question until the current one is resolved. If the user gives an answer that raises new questions, explore those before moving on.
 
 ## Complexity challenge
 
@@ -33,9 +37,9 @@ When the scope of what emerges feels large — many moving parts, cross-cutting 
 
 ## Output
 
-Always produce a written summary of findings and offer two options:
+Always produce a written summary of findings. Recommend the output format that best fits the situation, and ask the user to choose when both are viable:
 
-- A **separate findings/risk document** (recommended for PRD stress-tests): saved as `{feature}-premortem.md`
-- An **annotated version** of the existing document (recommended for living designs): highlights risks inline
+- A **separate findings/risk document** (recommended for PRD stress-tests and idea exploration): saved as `{feature}-premortem.md`
+- An **annotated version** of the existing document (recommended for living designs when a PRD or design doc already exists): highlights risks inline
 
-Never apply changes to the codebase directly from this skill. Return control to the user once the output is saved.
+Never apply implementation changes to the codebase directly from this skill. You may create the findings document or annotate the design artifact. Return control to the user once the chosen output is saved.
