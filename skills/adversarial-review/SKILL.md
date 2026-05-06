@@ -1,11 +1,12 @@
 ---
 name: adversarial-review
 description: >-
-  Launch a multi-model adversarial review panel to stress-test code,
+  Launch an adversarial review panel to stress-test code,
   architectural designs, PRDs, pull requests, or documentation. Each reviewer
-  runs with a different AI model and an explicitly adversarial posture —
-  challenging assumptions, surfacing failure modes, and questioning design
-  choices without bias toward the existing work. Use this skill whenever the
+  runs with an explicitly adversarial posture — challenging assumptions,
+  surfacing failure modes, and questioning design choices without bias toward
+  the existing work. When multiple reviewers are used, prefer distinct models
+  so the panel gets genuinely different perspectives. Use this skill whenever the
   user asks for a code review, design critique, PR review, architecture review,
   or any adversarial or critical feedback. Trigger on: "tear this apart", "what
   could go wrong?", "challenge this", "adversarial review", "red team this",
@@ -17,7 +18,7 @@ description: >-
 
 # Adversarial Review
 
-Orchestrate a multi-model panel of adversarial reviewers — each powered by a different AI model, each assigned a distinct attack vector. The goal is not balanced feedback: it is to surface every weakness, assumption gap, edge case, and failure mode before they reach production.
+Orchestrate an adversarial review panel — each reviewer assigned a distinct attack vector. When multiple reviewers are used, prefer different models so the panel surfaces genuinely different weaknesses, assumption gaps, edge cases, and failure modes before they reach production.
 
 **Skill workflow:**
 [`pre-mortem`](#) *(stress-test before building)* → **`adversarial-review`** *(tear apart what was built)* → [`adr`](#) *(record decisions that emerged from the review)*
@@ -37,7 +38,7 @@ Before launching reviewers, assess what is being reviewed. Size up the blast rad
 **🔴 Complex** — A system design, a cross-cutting refactor, a new service, a large PR (10+ files), an architectural choice with broad organizational impact, a PRD for a significant feature, or anything touching multiple teams or systems.
 → Launch **3 reviewers** by default. Launch more only if the user explicitly asks for it.
 
-When in doubt, lean toward more reviewers. The cost of an extra review pass is low; the cost of a missed critical issue is not.
+When in doubt on **Medium** or **Complex** work, lean toward more reviewers. The cost of an extra review pass is low; the cost of a missed critical issue is not.
 
 ---
 
@@ -54,23 +55,25 @@ Before spawning any agent, understand the subject. If the user hasn't pointed to
 
 ## Step 3: Assign adversarial roles
 
-Each reviewer gets a distinct attack vector. Role diversity ensures coverage diversity — the panel finds different categories of problems rather than three reviewers converging on the same visible surface issue.
+Each reviewer gets a distinct attack vector. Role diversity ensures coverage diversity — the panel finds different categories of problems rather than multiple reviewers converging on the same visible surface issue.
 
-| Reviewer | Model | Attack Vector |
+| Reviewer | Preferred model | Attack Vector |
 |----------|-------|---------------|
 | 🔴 **The Skeptic** | `gpt-5.4` | Challenges fundamental design choices: *"Why this approach at all? What did we not consider? What problem does this actually solve, and is that the right problem?"* Targets wrong-level abstractions, missing requirements, and hidden assumptions baked into the design. |
 | ⚡ **The Executioner** | `claude-sonnet-4.6` | Hunts for failure modes: *"What breaks, when, and how badly?"* Targets correctness, edge cases, error handling, race conditions, security vulnerabilities, and silent data corruption. |
 | 🔨 **The Pragmatist** | `gpt-5.3-codex` | Attacks production viability: *"Will this survive real-world load, real-world teams, and real-world time?"* Targets maintainability, operability, testability, performance under stress, and the hidden long-term costs of the implementation choices. |
 
+If a preferred model is unavailable, keep the role and attack vector the same and use the closest available substitute. The role matters more than the exact model label.
+
 When using fewer than 3 reviewers:
-- **1 reviewer**: Default to The Executioner (`claude-sonnet-4.6`) — correctness and failure modes are the highest-value adversarial lens for most contexts.
+- **1 reviewer**: Default to The Executioner (`claude-sonnet-4.6`) — correctness and failure modes are the highest-value adversarial lens for most contexts. This is a single-lens review, not a full panel.
 - **2 reviewers**: Add The Skeptic (`gpt-5.4`) — design questioning pairs well with failure-mode hunting and surfaces a different class of issue.
 
 ---
 
 ## Step 4: Launch reviewers in parallel
 
-Spawn all reviewers simultaneously — do not wait for one to finish before starting the next. Use this subagent prompt template for each:
+If there is more than one reviewer, spawn them simultaneously — do not wait for one to finish before starting the next. If there is only one reviewer, run that review directly. Use this subagent prompt template for each:
 
 ```
 You are [ROLE NAME], an adversarial reviewer.
@@ -96,7 +99,7 @@ If the user provided context (intent, constraints, prior decisions), include it 
 
 ## Step 5: Synthesize findings
 
-Once all reviewers complete, produce a unified adversarial review report:
+Once the review completes, produce a unified adversarial review report:
 
 ```
 # Adversarial Review — [Subject]
@@ -113,11 +116,11 @@ These are blockers. Address them before proceeding.]
 [Organized by reviewer. Do not omit these — patterns in lower-severity findings often signal systemic issues.]
 
 ## 🔗 Convergence
-[Issues independently surfaced by 2 or more reviewers. These deserve the most attention —
-independent adversarial reviewers reaching the same conclusion is a strong signal.]
+[Include only when 2 or more reviewers were used. Issues independently surfaced by 2 or more reviewers.
+These deserve the most attention — independent adversarial reviewers reaching the same conclusion is a strong signal.]
 
 ## ⚡ Dissents
-[Findings where reviewers disagreed or contradicted each other. Surface the tension.
+[Include only when reviewers disagreed or contradicted each other. Surface the tension.
 Do not flatten genuine conflicts into silence — the disagreement itself is informative.]
 
 ## Verdict
@@ -126,15 +129,15 @@ Do not flatten genuine conflicts into silence — the disagreement itself is inf
 🟢 PROCEED WITH CAUTION — no blockers, but findings should inform the next steps.
 ```
 
-**Why convergence is the most important section:** When two or three reviewers with different models and different attack vectors independently surface the same issue, that finding is not a coincidence — it is a near-certainty. These are the issues most likely to cause real damage if ignored.
+**Why convergence is the most important section when present:** When two or three reviewers with different models and different attack vectors independently surface the same issue, that finding is not a coincidence — it is a near-certainty. These are the issues most likely to cause real damage if ignored.
 
-**Why dissents are preserved:** An adversarial reviewer flagging something that another dismisses is not noise — it is a tension worth the user's attention. Collapsing genuine conflicts into a majority verdict defeats the purpose of using multiple reviewers.
+**Why dissents are preserved when present:** An adversarial reviewer flagging something that another dismisses is not noise — it is a tension worth the user's attention. Collapsing genuine conflicts into a majority verdict defeats the purpose of using multiple reviewers.
 
 ---
 
 ## Scope
 
-This skill handles: complexity assessment, adversarial reviewer orchestration, parallel multi-model review execution, finding synthesis, convergence detection, and final verdict.
+This skill handles: complexity assessment, adversarial reviewer orchestration, parallel review execution with distinct attack vectors, finding synthesis, convergence detection, and final verdict.
 
 This skill does **not** apply fixes. Its job is to find problems, not solve them. For the remediation cycle, use the appropriate skill: `refactoring` for structural fixes, `design-patterns` for design-level recommendations, `tdd` for testability issues, `clean-code` for code quality.
 
