@@ -4,14 +4,18 @@
     {
       "id": 1,
       "prompt": "I've just finished a major refactor of our payment processing service. We moved from a monolith to an event-driven architecture using Kafka. The new design publishes a PaymentRequested event, a PaymentProcessor service consumes it, and the result is published back as PaymentProcessed or PaymentFailed. We also added idempotency keys on each event. Can you adversarially review this design? Here's the main service file: src/payments/PaymentService.ts and the Kafka consumer: src/consumers/PaymentConsumer.ts",
-      "expected_output": "The skill should classify this as Complex (event-driven system refactor, cross-cutting concerns, broad impact) and launch all 3 reviewers in parallel. The Skeptic (GPT-5.4) should challenge the fundamental approach: is Kafka the right tool here, what happens to the synchronous payment confirmation UX, is event sourcing adding accidental complexity? The Executioner (claude-sonnet-4.6) should hunt for failure modes: what happens if PaymentProcessor crashes mid-processing, is exactly-once delivery guaranteed, are idempotency keys scoped correctly, what's the failure behavior when Kafka is unavailable? The Pragmatist (gpt-5.3-codex) should attack production viability: how is this monitored, how do you replay failed events, what's the operational burden of managing consumer lag? The synthesis should include a Convergence section highlighting any issues raised by multiple reviewers, and a Verdict.",
+      "expected_output": "The skill should classify this as Complex (event-driven system refactor, cross-cutting concerns, broad impact), create or reuse a review state file by default, establish a review contract, and launch all 3 reviewers in parallel. The Skeptic (GPT-5.4) should challenge the fundamental approach: is Kafka the right tool here, what happens to the synchronous payment confirmation UX, is event sourcing adding accidental complexity? The Executioner (claude-sonnet-4.6) should hunt for failure modes: what happens if PaymentProcessor crashes mid-processing, is exactly-once delivery guaranteed, are idempotency keys scoped correctly, what's the failure behavior when Kafka is unavailable? The Pragmatist (gpt-5.3-codex) should attack production viability: how is this monitored, how do you replay failed events, what's the operational burden of managing consumer lag? The synthesis should include a Review Contract section, a Convergence section highlighting any issues raised by multiple reviewers, a Closure Decision, and a Verdict.",
       "assertions": [
         "Classifies the task as Complex and launches 3 reviewers",
+        "Creates or reuses a review state file for this Medium/Complex review",
+        "Establishes a review contract with baseline state, desired end state, and blocker policy",
         "Launches all 3 reviewers (The Skeptic, The Executioner, The Pragmatist) in parallel",
         "The Skeptic challenges the fundamental design choice, not just implementation details",
         "The Executioner identifies at least one failure mode related to event delivery or processing guarantees",
         "The Pragmatist addresses operational/production concerns (monitoring, replay, observability)",
+        "The synthesis includes a Review Contract section",
         "The synthesis includes a Convergence section",
+        "The synthesis includes a Closure Decision section",
         "The synthesis includes a Verdict (DO NOT MERGE / CONDITIONAL / PROCEED WITH CAUTION)",
         "Dissents section is present if reviewers reached conflicting conclusions"
       ],
@@ -20,12 +24,15 @@
     {
       "id": 2,
       "prompt": "I'm thinking of adding a Redis cache in front of our user profile endpoint. The endpoint gets ~500 req/s and most profiles don't change often. I'd cache with a 5-minute TTL. Adversarially review this approach before I implement it.",
-      "expected_output": "The skill should classify this as Medium complexity (a self-contained caching decision, moderate blast radius). It should launch 1-2 reviewers — 2 is reasonable here given architectural implications. The Executioner should probe correctness: what happens when a profile updates during the TTL window, how is cache invalidation handled, what's the behavior on cache miss under high load (thundering herd), what if Redis goes down? The Skeptic should challenge the premise: is 500 req/s actually enough to need caching (what's the DB query cost?), are there staleness scenarios that could cause user-visible bugs, is 5-minute TTL too long for sensitive profile data? No need for The Pragmatist unless the reviewer count escalates to 3.",
+      "expected_output": "The skill should classify this as Medium complexity (a self-contained caching decision, moderate blast radius), create or reuse a review state file by default, and launch 1-2 reviewers — 2 is reasonable here given architectural implications. The Executioner should probe correctness: what happens when a profile updates during the TTL window, how is cache invalidation handled, what's the behavior on cache miss under high load (thundering herd), what if Redis goes down? The Skeptic should challenge the premise: is 500 req/s actually enough to need caching (what's the DB query cost?), are there staleness scenarios that could cause user-visible bugs, is 5-minute TTL too long for sensitive profile data? No need for The Pragmatist unless the reviewer count escalates to 3. The synthesis should include a Review Contract, a blocker-vs-follow-up split, and a Verdict.",
       "assertions": [
         "Classifies the task as Medium and does NOT launch all 3 reviewers by default",
+        "Creates or reuses a review state file for this Medium/Complex review",
         "Launches 1-2 reviewers (not 3)",
         "At least one reviewer surfaces the thundering herd problem or cache stampede risk",
         "At least one reviewer questions whether the TTL duration is appropriate for the data type",
+        "The synthesis includes a Review Contract section",
+        "The synthesis separates blockers from follow-up or deferred items",
         "The review includes a Verdict"
       ],
       "files": []
@@ -33,12 +40,39 @@
     {
       "id": 3,
       "prompt": "I just renamed the variable `tmp` to `tempValue` in our utils file. Can you adversarially review this change?",
-      "expected_output": "The skill should classify this as Simple (a trivial rename with no architectural or behavioral impact) and push back gently. It should tell the user that a full adversarial panel is probably overkill for a variable rename and offer to proceed anyway or do a quick inline review instead. It should NOT immediately spawn agents or launch a full review without checking with the user first.",
+      "expected_output": "The skill should classify this as Simple (a trivial rename with no architectural or behavioral impact) and push back gently. It should tell the user that a full adversarial panel is probably overkill for a variable rename and offer to proceed anyway or do a quick inline review instead. It should NOT immediately spawn agents, create a review state file, or launch a full review without checking with the user first.",
       "assertions": [
         "Classifies the task as Simple",
         "Pushes back and asks the user whether to proceed with the full panel",
+        "Does NOT create a Medium/Complex-style state file by default for a simple rename",
         "Does NOT immediately spawn adversarial reviewer agents without user confirmation",
         "The pushback is friendly and not dismissive — it offers alternatives"
+      ],
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "We already ran an adversarial review on our document export service and created `reviews/document-export-review-state.md`. The open blockers are `AR-001` (high: partial writes can leave corrupt output files) and `AR-002` (high: temp files may leak on failure). We fixed both in `src/export/ExportService.ts` and `src/export/TempFileManager.ts`. There is also a deferred medium item `AR-003` about inconsistent log field names. Run a verification adversarial review using the existing state file and tell me if we're ready to merge.",
+      "expected_output": "The skill should treat this as a Verification pass, reuse the existing `reviews/document-export-review-state.md` file, and focus the review on `AR-001`, `AR-002`, and any new in-scope Critical/High regressions in the touched export files. It should not reopen `AR-003` as a blocker just because it still exists. If a new Medium/Low issue is noticed during verification, it should be logged as follow-up instead of resetting closure. The synthesis should include Remaining blocker IDs, a Closure Decision, and a Verdict tied to whether the target state was reached.",
+      "assertions": [
+        "Uses Verification mode and reuses the supplied review state file",
+        "Focuses on open blocker IDs AR-001 and AR-002 plus touched-area regressions",
+        "Does NOT treat deferred AR-003 as a must-fix-now blocker during verification",
+        "Any new Medium/Low findings discovered during verification are logged as follow-up rather than blockers",
+        "The synthesis includes a Closure Decision with remaining blocker IDs and target state reached yes/no"
+      ],
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "We already completed a baseline adversarial review and one verification pass for our billing retry logic. The state file `reviews/billing-retry-review-state.md` now shows no open Critical/High findings; `AR-004` is a deferred medium observability issue and `AR-005` is an accepted risk about duplicate warning logs. Perform the closure check and tell me whether the review should stop.",
+      "expected_output": "The skill should recognize that closure does not require zero findings. Because there are no open in-scope Critical/High blockers, it should treat the deferred medium item and accepted risk as compatible with closure, avoid launching a fresh unrestricted teardown, and return a stop/close decision with the current state file and verdict. The answer should explain that the blocker set is closed even though advisory items remain.",
+      "assertions": [
+        "Does NOT require zero findings to close the review",
+        "Treats Deferred and Accepted Risk statuses as compatible with closure when no Critical/High blockers remain",
+        "Does NOT restart a fresh unrestricted adversarial panel when performing the closure check",
+        "Returns a stop or close decision tied to the existing review state file",
+        "Explains that the blocker set is closed even though follow-up items remain"
       ],
       "files": []
     }
