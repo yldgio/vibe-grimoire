@@ -11,4 +11,5 @@ If `memento-memento_context_assemble` is available, call it at the start of each
 
 <!-- Populated automatically by the kaizen skill. One line per entry. -->
 - **2026-03-30** [git push without -u does not set upstream tracking](kaizen/20260330-git-push-no-upstream.md) — always use `git push -u origin <branch>` or follow up with `git branch --set-upstream-to`
+- **2026-05-06** [keep skill descriptions under 900 characters](kaizen/20260506-skill-desc-limit.md) — frontmatter descriptions are registry metadata; keep them concise and within the repo limit
 
