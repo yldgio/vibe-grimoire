@@ -1,0 +1,16 @@
+name: Scan Skills
+
+on:
+  push:
+    paths: ["skills/**"]
+  pull_request:
+    paths: ["skills/**"]
+
+jobs:
+  scan:
+    uses: cisco-ai-defense/skill-scanner/.github/workflows/scan-skills.yml@main
+    with:
+      skill_path: skills
+    permissions:
+      security-events: write
+      contents: read
