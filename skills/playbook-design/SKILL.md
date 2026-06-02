@@ -34,6 +34,20 @@ Collect:
 - **`description`** — one sentence describing what the playbook does.
 - **`version`** — default `"1.0"` unless the developer specifies otherwise.
 
+### Step 2.5: Elicit variables
+
+Ask: *"Does this workflow need runtime inputs that vary each time you run it? For example, an issue URL, branch name, or target environment."*
+
+If yes, collect for each variable:
+- **`name`** — a short identifier in kebab-case or snake_case (e.g. `issue_url`, `branch_name`, `target_env`)
+- **`default`** — a default value (string). Leave empty `""` if the variable is **required** at runtime; provide a non-empty string for an optional variable with a fallback.
+
+Variables are referenced in task `prompt` and `input` fields as `{{ variables.<name> }}`. `playbook-execute` will collect required variables from the developer before starting execution.
+
+If no variables are needed, skip this step.
+
+---
+
 ### Step 3: Elicit phases
 
 Ask the developer to name the logical groupings of their workflow (e.g. *understand*, *implement*, *verify*). For each phase collect:
@@ -107,7 +121,7 @@ name: <slug>                   # kebab-case, becomes the filename
 description: <string>          # one-sentence summary
 version: "1.0"                 # semver string
 
-variables:                     # optional — runtime inputs (Wave 2)
+variables:                     # optional — runtime inputs; referenced as {{ variables.<name> }}
   <var-name>: ""               # empty string = required at runtime; non-empty = default
 
 phases:
@@ -264,8 +278,9 @@ tasks:
 ## Notes
 
 - Playbooks live in the **user's repo** under `./playbooks/` — they are versioned alongside the code they automate.
-- `{{ variables.<name> }}` substitution and `!include <path>` in `prompt` are Wave 2 features handled at runtime by `playbook-execute`. Include them in the YAML as-is when the developer asks for them; they will be inert until Wave 2 execution support is active. In Wave 1, also mention to the developer: *"Variables and !include are recorded in the playbook but not substituted until Wave 2 execution."*
-- **Wave 1 note for parallel/conditional tasks**: if the developer describes tasks that should run in parallel, record their dependencies as normal — `playbook-execute` Wave 1 will run them sequentially in topological order. Note this to the developer when designing.
+- `{{ variables.<name> }}` tokens in `prompt` and `input` are substituted at runtime by `playbook-execute` — they are recorded as-is in the YAML and resolved during execution.
+- `!include <path>` in a `prompt` field tells `playbook-execute` to load the referenced Markdown file at runtime and use its content as the prompt. The path must be relative to the playbook file. Useful for long, rich prompts that would clutter the YAML.
+- Tasks that have no blocking `depends_on` relationship run in parallel during execution. If the developer wants two tasks to run in parallel, simply do not add a `depends_on` between them.
 - A playbook with no `depends_on` anywhere is valid: tasks run in file order.
 - The `executor` field is optional. When omitted, `playbook-execute` selects an executor based on `capability`.
 

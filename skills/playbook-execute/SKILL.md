@@ -1,18 +1,18 @@
 ---
 name: playbook-execute
 description: >-
-  Read a Playbook YAML file and execute its tasks in topological dependency
-  order, delegating each to the appropriate executor (agent or human).
-  Validates the playbook before starting, resolves executors by capability
-  fallback, honours on_failure rules (stop/skip/retry/fallback), pauses on
-  human executor tasks, and reports progress throughout. Trigger when the
-  user says "run playbook", "execute playbook", or provides a path to a
-  .yml playbook file. Wave 1: sequential execution only.
+  Read a Playbook YAML file and execute its tasks: resolve !include prompts,
+  substitute variables, validate schema, topologically sort, then execute
+  independent tasks in parallel batches delegating each to the appropriate
+  executor (agent or human). Handles on_failure rules (stop/skip/retry/
+  fallback), pauses on human executor tasks, and reports progress throughout.
+  Trigger when the user says "run playbook", "execute playbook", or provides
+  a path to a .yml playbook file.
 ---
 
 # playbook-execute
 
-Execute a Playbook YAML file end-to-end: parse → validate → topological sort → sequential execution → success verification → on_failure handling → progress reporting.
+Execute a Playbook YAML file end-to-end: resolve `!include` → substitute variables → validate → topological sort → parallel batch execution → success verification → on_failure handling → progress reporting.
 
 ---
 
@@ -35,6 +35,17 @@ If no path is provided, list the `.yml` files in `./playbooks/` and ask the deve
 Read the YAML file at the given path. If the file does not exist, report a clear error and stop.
 If the file exists but cannot be parsed as valid YAML, report the parse error (including line number if available), then stop.
 
+### Step 1.5: Resolve `!include` directives
+
+Before validation, scan every task's `prompt` field for the pattern `!include <path>`. For each one found:
+
+1. Compute the file path: relative to the directory containing the playbook file.
+2. Read the referenced file's contents.
+3. Replace the `!include <path>` value with the file contents as a multiline string.
+4. If the referenced file does not exist: **fatal error** — report clearly (naming the task and the missing file path) and stop without running any tasks.
+
+`!include` is not standard YAML syntax; it is a `playbook-execute` convention resolved entirely at this step. After Step 1.5, no `!include` tokens should remain in any field.
+
 ### Step 2: Validate
 
 Before running any task, validate the playbook:
@@ -52,24 +63,57 @@ Before running any task, validate the playbook:
 
 If validation fails, report every violation clearly, then stop without running any tasks.
 
+### Step 2.5: Collect and substitute variables
+
+If the playbook has a `variables` block:
+
+1. **Collect required values**: for each variable whose default is `""` (empty string), ask the developer to supply a value before execution starts. Present them all at once:
+   ```
+   This playbook requires the following inputs:
+     • issue_url (required): 
+     • branch_name (optional, default: "main"):
+   ```
+2. Merge developer-supplied values with non-empty defaults. Every variable must now have a resolved value.
+3. **Substitute** `{{ variables.<name> }}` tokens in every `prompt` and `input` field, replacing them with their resolved values. This substitution happens once, before any task executes.
+4. If a `{{ variables.<name> }}` token references a variable not declared in `variables`, treat it as a validation error: report clearly and stop.
+
+If the playbook has no `variables` block, skip this step.
+
 ### Step 3: Topological sort
 
-Sort the task list so that every task appears after all tasks it `depends_on`. Use Kahn's algorithm or depth-first post-order. Tasks with no dependencies come first. When multiple tasks are unblocked at the same level, maintain their file order.
+Compute the topological order of all tasks by their `depends_on` relationships. This defines execution eligibility — a task becomes **ready** when all tasks it depends on are `completed` (or satisfied via fallback). Tasks with no `depends_on` are ready immediately.
 
-### Step 4: Execute tasks sequentially
+When multiple tasks are ready at the same time with no dependency between them, they run in **parallel** (see Step 4).
 
-Work through the sorted task list one at a time. For each task:
+### Step 4: Execute tasks in parallel batches
 
-Before executing a task, check whether any task in its `depends_on` list is marked as skipped. If so, skip this task too and print:
+Use a **frontier-based parallel execution** model:
 
-`⚠️ <task-name> skipped — dependency <dep-name> was skipped.`
+**Execution loop:**
 
-Then continue to the next task.
+1. **Compute the ready set**: all tasks whose status is `pending` and whose every `depends_on` entry is `completed` (including satisfied-via-fallback) or `skipped` (see skip propagation below).
+2. If the ready set is empty and tasks remain `pending` (blocked by failures): stop — print the final summary.
+3. **Launch all ready tasks simultaneously** as background agents. For each task in the ready set, report start and resolve executor (Steps 4a–4b below) before delegating.
+4. **Collect completions** as each background task reports back. For each completed task:
+   - Verify `success` criteria (Step 4e)
+   - Apply `on_failure` if needed (Step 5)
+   - Mark the task as `completed` / `skipped` / `failed`
+5. After all tasks in the current batch have resolved (each is `completed`, `skipped`, or `failed`): return to step 1.
+
+**Skip propagation**: when a task is `skipped`, any tasks that `depends_on` it are marked `skip-pending`. When the ready set is computed, `skip-pending` tasks are immediately skipped (not launched). Print `⚠️ <task-name> skipped — dependency <dep-name> was skipped.` for each.
+
+**on_failure: stop in a parallel batch**: mark the failing task as `failed`. Allow all other currently-running tasks to complete normally — do not cancel them. Once the batch resolves, print the final summary and stop. Do not launch any further tasks.
 
 #### 4a. Report start
 
 ```
 ▶ [phase: <phase-name>] <task-name>
+```
+
+If multiple tasks start simultaneously:
+```
+▶ [phase: <phase-name>] <task-a>  [parallel]
+▶ [phase: <phase-name>] <task-b>  [parallel]
 ```
 
 #### 4b. Resolve executor
@@ -100,10 +144,12 @@ When `executor` resolves to `human`:
 4. Treat the developer's response as the task's output.
 5. Print: `--- ✅ Human task complete ---`
 
+> **Parallel note:** a `human` task blocks the batch it is part of until the developer responds. If other tasks in the same batch are agent-run, they may complete before the human responds — their results are held until the human task also resolves.
+
 #### 4d. Delegate to agent executor
 
 For non-human executors, delegate the task to the resolved agent with:
-- The task's `prompt` as the instruction
+- The task's `prompt` as the instruction (already has `!include` resolved and `{{ variables.x }}` substituted)
 - Any `input` artefacts as context
 - The `output` field as the expected deliverable
 
@@ -112,10 +158,10 @@ For non-human executors, delegate the task to the resolved agent with:
 After the executor completes, evaluate whether the `success` criteria are met. The `success` field describes an observable state — check it:
 - File exists → verify the file is present and non-empty
 - Test passes → confirm the build/test output shows passing
-- Developer responded → the human response counts as success
+- Developer responded → evaluate the response against the stated `success` criteria (not just "any response")
 - Any other description → use judgment; when uncertain, ask the developer to confirm
 
-If `success` is met: mark the task ✅ and proceed.
+If `success` is met: mark the task `completed` (✅) and proceed.
 If `success` is not met: apply `on_failure` (see Step 5).
 
 #### 4f. Report completion
@@ -163,28 +209,18 @@ If every task completed successfully, add: `🎉 All tasks completed successfull
 
 Throughout execution, keep the developer informed:
 
-- On each task start: `▶ [<phase>] <task-name>`
+- On each task start: `▶ [<phase>] <task-name>` (append `  [parallel]` when multiple tasks start simultaneously)
 - On each task completion: `✅ [<phase>] <task-name> — done`
 - On skip: `⚠️ [<phase>] <task-name> — skipped`
 - On human task: separator block (see Step 4c)
 - On failure before stop: `❌ [<phase>] <task-name> — FAILED: <reason>`
-
----
-
-## Wave 2 features (not yet active)
-
-The following features are defined but **not active in Wave 1**. When you encounter them, warn the developer and document the behavior:
-
-- **`variables` block at playbook level**: If the playbook contains a `variables` section, warn the developer: *"This playbook declares variables. Variable substitution is a Wave 2 feature — `{{ variables.<name> }}` tokens will be passed to executors as-is in Wave 1."* Do not collect or substitute variables. Proceed with raw token text in all fields.
-- **`!include <path>`** in `prompt`: If you encounter `!include <path>` in any `prompt` field, warn: *"`!include` is a Wave 2 feature — the executor will receive the literal text `!include <path>` as its prompt in Wave 1."* Do not read the referenced file.
-
-> **Note for Wave 2 implementors:** Activate variable substitution by collecting all `variables` values (prompting for any with an empty default) before execution, then substituting `{{ variables.<name> }}` in all `prompt` and `input` fields. Activate `!include` by reading the referenced file (path relative to the playbook file) and substituting its content as the `prompt` value at parse time.
+- Between parallel batches: print `--- batch complete, evaluating next tasks ---` when more than one task ran in the last batch
 
 ---
 
 ## Notes
 
 - **State is maintained within the current conversation.** Execution state (which tasks completed, their outputs) is held in the ongoing agent conversation — it persists across human-executor pauses as long as the conversation continues. It is not written to disk and will be lost if the conversation ends. (Resume-from-task across sessions is Wave 3.)
-- **A playbook with no `depends_on` anywhere is valid.** Tasks run in file order.
-- **Output references:** a task's `output` field describes what it produces. Downstream tasks reference it in their `input` or `prompt`. The executor is responsible for producing it.
-- **Parallel execution is Wave 2.** All tasks run sequentially in Wave 1.
+- **A playbook with no `depends_on` anywhere is valid.** All tasks have no dependencies and launch simultaneously in one parallel batch.
+- **Output references:** a task's `output` field describes what it produces. Downstream tasks reference it in their `input` or `prompt`. The executor is responsible for producing it. In a parallel batch, all task outputs are available to the next batch.
+- **Wave 3 (deferred):** resume-from-task (re-run from a specific task after partial failure) and run summary artifact (structured report written to disk) are out of scope for this version.

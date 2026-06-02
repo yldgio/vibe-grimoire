@@ -40,6 +40,19 @@
         "File is not saved until validation passes"
       ],
       "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "I want a playbook called 'nightly-report' that generates a daily summary report. It needs a variable for the target_date (required) and one for report_format with default 'markdown'. Two tasks: gather-data (research) and format-report (implementation, depends_on: gather-data). The gather-data prompt should reference {{ variables.target_date }} and format-report should reference {{ variables.report_format }}.",
+      "expected_output": "The skill should, after the name/description/version step, ask about runtime variables and elicit target_date (required, empty default) and report_format (optional, default 'markdown'). The output YAML must contain a top-level 'variables' block with both entries. The task prompts must contain the {{ variables.target_date }} and {{ variables.report_format }} tokens as-is. The skill should note that playbook-execute will collect required variable values before running.",
+      "assertions": [
+        "Skill explicitly asks whether the workflow needs runtime variables (Step 2.5)",
+        "Output YAML contains a top-level 'variables' block with target_date (empty default) and report_format (default: markdown)",
+        "gather-data task prompt contains {{ variables.target_date }}",
+        "format-report task prompt contains {{ variables.report_format }}",
+        "Skill notes that playbook-execute will prompt for required (empty) variables at run time"
+      ],
+      "files": []
     }
   ]
 }

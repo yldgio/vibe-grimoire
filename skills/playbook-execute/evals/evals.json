@@ -105,6 +105,81 @@
           "description": "Playbook with phases [build, test] but a task referencing phase: release"
         }
       ]
+    },
+    {
+      "id": 7,
+      "prompt": "Run ./playbooks/report-with-vars.yml. The playbook has variables: { target_date: '', report_format: 'markdown' }. Two tasks: gather-data and format-report. The gather-data prompt contains {{ variables.target_date }} and format-report prompt contains {{ variables.report_format }}.",
+      "expected_output": "Before starting execution, the skill should detect the variables block, present both variables to the developer (target_date as required since its default is empty, report_format as optional with default 'markdown'). After collecting target_date from the developer, the skill substitutes all {{ variables.* }} tokens in all prompt and input fields before any task executes. The tasks then run with the substituted values — no raw {{ variables.* }} tokens should reach any executor.",
+      "assertions": [
+        "Skill detects the variables block before execution starts",
+        "Skill presents required variable (target_date) for collection and optional variable (report_format) with its default",
+        "After collection, {{ variables.target_date }} is substituted with the developer-provided value in all fields",
+        "{{ variables.report_format }} is substituted with 'markdown' (default) in all fields",
+        "No raw {{ variables.* }} tokens appear in any task prompt or input sent to an executor"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/report-with-vars.yml",
+          "description": "Playbook with variables block, two tasks using {{ variables.target_date }} and {{ variables.report_format }}"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Run ./playbooks/include-demo.yml where the write-analysis task has prompt: '!include prompts/deep-analysis.md'. The file prompts/deep-analysis.md exists and contains detailed analysis instructions.",
+      "expected_output": "Before validation, the skill should detect the !include directive in write-analysis task's prompt, read prompts/deep-analysis.md (path relative to the playbook file location), and replace the prompt value with the file's content. The executor then receives the full contents of deep-analysis.md as its prompt — not the !include token.",
+      "assertions": [
+        "Skill resolves !include before validation (Step 1.5)",
+        "write-analysis task prompt is replaced with the full contents of prompts/deep-analysis.md",
+        "The executor receives the file contents, not the literal '!include prompts/deep-analysis.md' string",
+        "If prompts/deep-analysis.md did not exist, the skill should report a fatal error naming the task and missing file"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/include-demo.yml",
+          "description": "Playbook with a task using !include to reference an external prompt file"
+        },
+        {
+          "path": "./prompts/deep-analysis.md",
+          "description": "External prompt file referenced by the !include directive"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Run ./playbooks/parallel-tasks.yml where tasks fetch-a and fetch-b have no dependencies (both run first), then merge-results depends_on both fetch-a and fetch-b.",
+      "expected_output": "The skill should compute the initial ready set as {fetch-a, fetch-b} and launch both as background agents simultaneously. While both run in parallel, progress shows both with '[parallel]' marker. After both complete successfully, merge-results becomes ready and runs alone. Final summary shows all 3 tasks completed.",
+      "assertions": [
+        "fetch-a and fetch-b are launched simultaneously in the first batch (not sequentially)",
+        "Both fetch-a and fetch-b are reported with the [parallel] marker",
+        "merge-results does not start until both fetch-a and fetch-b have completed",
+        "Final summary shows all 3 tasks as completed",
+        "Between the first and second batch, a batch-complete separator is printed"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/parallel-tasks.yml",
+          "description": "Playbook with fetch-a and fetch-b (independent) then merge-results (depends_on both)"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Run ./playbooks/parallel-stop.yml where tasks scan-a and scan-b run in parallel (no dependencies between them). scan-a fails with on_failure: stop. scan-b is still running when scan-a fails.",
+      "expected_output": "When scan-a fails, the skill should NOT cancel scan-b. It should wait for scan-b to complete, then print the final summary and stop. The final summary shows scan-a as failed and scan-b as completed (or failed if it also failed). No further tasks are launched after the batch resolves.",
+      "assertions": [
+        "scan-a failure with on_failure:stop does not cancel scan-b mid-execution",
+        "The skill waits for scan-b to complete before printing the final summary",
+        "scan-a appears in the final summary as failed with its failure reason",
+        "scan-b appears in the final summary with its actual outcome (completed or failed)",
+        "No tasks that depend on either scan-a or scan-b are launched after the stop"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/parallel-stop.yml",
+          "description": "Playbook with scan-a and scan-b in parallel, scan-a failing with on_failure:stop"
+        }
+      ]
     }
   ]
 }
