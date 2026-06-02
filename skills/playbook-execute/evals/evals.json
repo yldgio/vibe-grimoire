@@ -1,0 +1,110 @@
+{
+  "skill_name": "playbook-execute",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run ./playbooks/implement-from-issue.yml",
+      "expected_output": "The skill should parse and validate the playbook, topologically sort the 6 tasks, then execute them sequentially: fetch-issue → explore-codebase → approve-plan (human pause) → write-implementation → security-review → open-pr. On approve-plan, the skill must display the task prompt and wait for developer input before continuing. Each task should be reported with ▶ on start and ✅ on completion. The final summary must list all 6 tasks as completed.",
+      "assertions": [
+        "Skill reports validation success before starting execution",
+        "Tasks execute in topological order: fetch-issue before explore-codebase; both before approve-plan; approve-plan before write-implementation; write-implementation before security-review; security-review before open-pr",
+        "approve-plan triggers a human executor pause: separator printed, prompt displayed, developer response awaited",
+        "Each task is reported with ▶ on start and ✅ on completion",
+        "Final summary lists all 6 tasks as completed",
+        "No tasks execute in parallel (Wave 1 sequential)"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/implement-from-issue.yml",
+          "description": "Standard implement-from-issue playbook from the PRD example"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run ./playbooks/test-on-failure.yml where the 'run-tests' task has on_failure: skip, and the 'deploy' task depends_on run-tests.",
+      "expected_output": "When run-tests fails its success criteria, the skill should log a skip warning, mark run-tests as skipped, and also skip the deploy task (because its dependency was skipped). The final summary should show run-tests and deploy as skipped, not failed. Execution continues (does not stop) because on_failure was skip.",
+      "assertions": [
+        "run-tests failure triggers on_failure: skip behaviour (not stop)",
+        "Warning message ⚠️ run-tests — skipped is shown",
+        "deploy task is also skipped because its dependency (run-tests) was skipped",
+        "Final summary lists run-tests and deploy under Skipped, not Failed",
+        "Any tasks not depending on run-tests complete normally"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/test-on-failure.yml",
+          "description": "Playbook with run-tests (on_failure: skip) → deploy dependency chain"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run ./playbooks/cycle-test.yml where task-a depends_on task-b and task-b depends_on task-a.",
+      "expected_output": "The skill should detect the cycle during validation (before any task executes), name the cycle (task-a → task-b → task-a), and stop with a clear error. No tasks should execute.",
+      "assertions": [
+        "Skill detects the cycle during validation, before starting execution",
+        "Error message names both tasks in the cycle",
+        "No tasks are executed",
+        "Skill stops after reporting the cycle"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/cycle-test.yml",
+          "description": "Playbook with a circular dependency between task-a and task-b"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Run ./playbooks/fallback-demo.yml where 'primary-impl' has on_failure: fallback:backup-impl, and primary-impl fails.",
+      "expected_output": "When primary-impl fails its success criteria, the skill should skip primary-impl, insert backup-impl next in the execution queue, run backup-impl, and use its output for any downstream tasks that depend on primary-impl. The final summary should show primary-impl as failed/skipped and backup-impl as completed.",
+      "assertions": [
+        "primary-impl failure triggers on_failure: fallback:backup-impl",
+        "backup-impl is executed immediately after primary-impl fails",
+        "Downstream tasks that depend on primary-impl receive backup-impl's output",
+        "Final summary shows primary-impl as skipped/failed and backup-impl as completed"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/fallback-demo.yml",
+          "description": "Playbook with primary-impl (on_failure: fallback:backup-impl) and a downstream task"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Run ./playbooks/retry-demo.yml where 'run-linter' has on_failure: retry and fails both the first and the second attempt.",
+      "expected_output": "The skill should run run-linter once, verify success (fail), retry once, verify success again (fail), then treat as stop and halt the playbook. The final summary should show run-linter as failed.",
+      "assertions": [
+        "run-linter is executed exactly twice (original attempt + one retry)",
+        "After both attempts fail, the skill applies stop behaviour",
+        "Final summary shows run-linter as failed, not skipped",
+        "No further tasks execute after the stop"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/retry-demo.yml",
+          "description": "Playbook with a single run-linter task (on_failure: retry) that fails both attempts"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Run ./playbooks/phase-mismatch.yml where task 'deploy' has phase: 'release' but the playbook only declares phases: [build, test].",
+      "expected_output": "The skill should detect the invalid phase reference during validation (before any task executes), name the offending task and the undeclared phase, and stop with a clear error message.",
+      "assertions": [
+        "Validation catches the phase reference error before execution starts",
+        "Error message names the offending task (deploy) and the undeclared phase (release)",
+        "No tasks are executed",
+        "Skill stops after reporting the validation failure"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/phase-mismatch.yml",
+          "description": "Playbook with phases [build, test] but a task referencing phase: release"
+        }
+      ]
+    }
+  ]
+}

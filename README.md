@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-26-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-28-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -49,6 +49,23 @@ Tell your agent: *"use the setup-repo skill"* — GitHub Copilot CLI, OpenCode, 
 
 ## Skills
 
+### Playbook Workflow
+
+Two skills form a design-and-execute loop for repeatable, composable agentic workflows:
+
+```
+playbook-design ──────────────────────────────────► playbook-execute
+      │                                                     │
+ Structured interview                          Parse YAML → topological sort
+ → valid YAML Playbook                         → sequential execution
+ → ./playbooks/<name>.yml                      → on_failure handling
+                                               → progress reporting
+```
+
+A **Playbook** is a machine-executable workflow graph: named Phases containing Tasks with explicit inputs, outputs, dependencies, and success criteria. The developer designs once; the executor runs it as many times as needed.
+
+---
+
 ### PRD Workflow
 
 Several skills chain together to take a feature idea all the way to tracked work items:
@@ -61,6 +78,42 @@ Write the PRD   Stress-test         Local phased plan    Tracker issues
 ```
 
 Each skill is independently useful — use any one in isolation or chain them in sequence.
+
+---
+
+### `playbook-design`
+
+Design a repeatable, versioned, executable workflow through a structured interview. Produces a YAML Playbook file saved to `./playbooks/<name>.yml`.
+
+- **Interview-driven** — elicits playbook name, phases, and every task field (capability, executor, depends_on, input, output, prompt, success, on_failure)
+- **Inline validation** — catches missing `success` fields, dangling `depends_on` references, invalid capability/executor values, and dependency cycles before saving
+- **Schema-complete output** — produces a YAML artifact that `playbook-execute` can run without modification
+- **Concrete example embedded** — `implement-from-issue.yml` is included in the skill docs for manual authoring reference
+
+```
+skills/playbook-design/SKILL.md
+skills/playbook-design/evals/evals.json
+```
+
+---
+
+### `playbook-execute`
+
+Execute a Playbook YAML file end-to-end: validate → topological sort → sequential execution → success verification → on_failure handling → progress reporting.
+
+- **Pre-flight validation** — checks all schema constraints before running a single task (phase refs, depends_on integrity, cycles, enum values)
+- **Topological execution** — tasks always run after their dependencies, regardless of file order
+- **Human executor support** — pauses on `executor: human` tasks, displays the prompt, and waits for developer response
+- **Capability fallback** — resolves executor by capability when the preferred executor is absent; pauses to ask if no match found
+- **on_failure handling** — `stop | skip | retry | fallback:<task-name>` with skip cascading to dependent tasks
+- **Progress reporting** — live ▶ / ✅ / ⚠️ / ❌ updates throughout; final summary on completion
+
+```
+skills/playbook-execute/SKILL.md
+skills/playbook-execute/evals/evals.json
+```
+
+---
 
 ---
 

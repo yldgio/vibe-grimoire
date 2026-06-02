@@ -1,0 +1,45 @@
+{
+  "skill_name": "playbook-design",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to design a playbook that takes a GitHub issue URL, implements the feature, and opens a PR. There are three steps: fetch and understand the issue, write the code, then review and ship.",
+      "expected_output": "The skill should open a structured interview, collect playbook name/description/version, elicit three phases (understand, implement, verify), then walk through each task. Expected output: a valid YAML file saved to ./playbooks/<name>.yml containing tasks for fetch-issue (capability: research, executor: main), explore-codebase (capability: research, executor: explore, depends_on: fetch-issue), approve-plan (capability: decision, executor: human, depends_on: [fetch-issue, explore-codebase]), write-implementation (capability: implementation, executor: main, depends_on: approve-plan), security-review (capability: review, executor: security-review, depends_on: write-implementation), open-pr (capability: implementation, executor: main, depends_on: security-review). Every task must have a non-empty success field. The skill must validate before saving and confirm the file path.",
+      "assertions": [
+        "Skill opens with a goal-elicitation interview before asking about phases or tasks",
+        "Output YAML has top-level fields: name, description, version, phases, tasks",
+        "All 6 tasks are present with non-empty name, phase, capability, prompt, and success fields",
+        "Task names are kebab-case and unique within the playbook",
+        "depends_on references only exist task names (no dangling references)",
+        "File is saved to ./playbooks/<playbook-name>.yml and confirmation is shown",
+        "Skill performs validation before saving and would reject a missing success field"
+      ],
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I want a playbook called 'security-audit'. It has one phase: audit. Two tasks: run-scanner (capability: verification, executor: security-review) and report-findings (capability: review, executor: human, depends_on: run-scanner). The run-scanner task has no success criteria.",
+      "expected_output": "The skill should detect the missing 'success' field on run-scanner and refuse to save. It should tell the developer that every task requires a non-empty success field, prompt them to provide success criteria for run-scanner, then validate again and save only after the field is present.",
+      "assertions": [
+        "Skill identifies the missing success field on run-scanner before saving",
+        "Skill explains the validation rule clearly to the developer",
+        "Skill prompts the developer to supply the missing success criteria",
+        "After correction, skill re-validates and then saves the file",
+        "Saved file contains a non-empty success field on run-scanner"
+      ],
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Create a playbook 'deploy-release' with task 'push-to-prod' that depends_on 'run-tests', but the playbook has no task named 'run-tests'.",
+      "expected_output": "The skill should detect the dangling depends_on reference ('run-tests' does not exist) during validation and refuse to save. It should name the offending task, name the missing dependency, and ask the developer to either add the missing task or remove the reference.",
+      "assertions": [
+        "Skill detects the depends_on integrity violation before saving",
+        "Error message names the offending task (push-to-prod) and the missing dependency (run-tests)",
+        "Skill offers to resolve: add the missing task or remove the reference",
+        "File is not saved until validation passes"
+      ],
+      "files": []
+    }
+  ]
+}
