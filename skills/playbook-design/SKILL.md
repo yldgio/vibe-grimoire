@@ -6,8 +6,8 @@ description: >-
   machine-executable workflow graph: Phases (logical groupings) containing
   Tasks (atomic executable units with inputs, outputs, dependencies, and
   success criteria). Trigger this skill when the user wants to design,
-  create, or author a repeatable multi-step agentic workflow. Covers the
-  full interview → validate → save flow.
+  create, edit, or author a repeatable multi-step agentic workflow. Covers the
+  full interview → validate → save flow, including updating existing playbooks.
 ---
 
 # playbook-design
@@ -53,7 +53,7 @@ For each task, interview the developer to collect all schema fields. Go phase by
 | `capability` | What type of work does this task do? (`research` / `implementation` / `verification` / `review` / `decision`) |
 | `executor` | Which agent should run this? (`main` / `explore` / `code-review` / `security-review` / `human` / `custom:<name>`) — optional, leave blank if you want capability-based fallback |
 | `depends_on` | Which earlier tasks must complete before this one starts? (list of task name slugs) |
-| `input` | What artefacts or values does this task receive? (filenames, variable references) |
+| `input` | What artefacts or values does this task receive? Can be a single filename (string), list of filenames, or mapping of named inputs (key: value pairs). |
 | `output` | What artefact or state does this task produce? |
 | `prompt` | What should the executor do? (instructions for the agent or human) |
 | `success` | What observable result confirms this task is done? Be concrete — file exists, test passes, developer responded, etc. |
@@ -84,7 +84,15 @@ Show the developer the full YAML. Ask: *"Does this look right? Any changes befor
 
 Apply any corrections, re-validate, then save.
 
-### Step 7: Save
+### Step 7: Check for existing playbook
+
+Before saving, check if a playbook with the same `name` already exists at `./playbooks/<name>.yml`. If it does:
+- Show the developer the existing file.
+- Ask: *"This playbook already exists. Do you want to edit it incrementally, or create a new version?"*
+- If **edit**: load the existing YAML, merge the developer's changes incrementally, re-validate, then save.
+- If **new version**: increment the `version` field (e.g., `"1.0"` → `"2.0"`), save with the updated name if needed, or save as a separate artifact.
+
+### Step 8: Save
 
 Save the playbook to `./playbooks/<name>.yml` (where `<name>` is the playbook's `name` field).
 
@@ -114,8 +122,9 @@ tasks:
     depends_on:                # optional list of task name slugs
       - <task-name>
     input:                     # optional — artefacts or variables received
-      <key>: <value>
-    output: <string>           # optional — artefact or state produced
+                               # Can be: string (single artifact), list (multiple artifacts), or mapping (key-value pairs)
+      <key>: <value>           # Use mapping for named references; use string/list for ordered artifact references
+    output: <string>           # optional — artefact or state produced (name or description of output)
     prompt: |                  # executor instructions
       <text>
     success: |                 # mandatory — observable completion criteria
