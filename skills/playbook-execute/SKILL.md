@@ -33,6 +33,7 @@ If no path is provided, list the `.yml` files in `./playbooks/` and ask the deve
 ### Step 1: Load and parse
 
 Read the YAML file at the given path. If the file does not exist, report a clear error and stop.
+If the file exists but cannot be parsed as valid YAML, report the parse error (including line number if available), then stop.
 
 ### Step 2: Validate
 
@@ -44,7 +45,7 @@ Before running any task, validate the playbook:
 4. **Phase reference**: each task's `phase` must match a phase `name` declared in `phases` (if `phases` is present). If `phases` is absent, skip this check.
 5. **depends_on integrity**: every slug in any `depends_on` list must reference an existing task `name`.
 6. **No cycles**: the dependency graph must be a DAG (topologically sortable). If a cycle exists, name every task in the cycle and stop.
-7. **capability values**: must be one of `research | implementation | verification | review | decision`. An invalid value is a validation error — do not silently fall back.
+7. **capability values**: must be one of `research | implementation | verification | review | decision`. An invalid value is a validation error — stop and report it. (This rule is about validating the `capability` field itself; it does not prohibit executor resolution in Step 4b when capability is valid.)
 8. **executor values**: if specified, must be one of `main | explore | code-review | security-review | human | custom:<name>`. An invalid value is a validation error.
 9. **on_failure values**: must be one of `stop | skip | retry | fallback:<task-name>`. An invalid value is a validation error.
 10. **fallback target exists and is valid**: if `on_failure: fallback:<task-name>`, that task must exist, must not equal the current task, and must not create a fallback loop (A→B→A).
@@ -59,6 +60,12 @@ Sort the task list so that every task appears after all tasks it `depends_on`. U
 
 Work through the sorted task list one at a time. For each task:
 
+Before executing a task, check whether any task in its `depends_on` list is marked as skipped. If so, skip this task too and print:
+
+`⚠️ <task-name> skipped — dependency <dep-name> was skipped.`
+
+Then continue to the next task.
+
 #### 4a. Report start
 
 ```
@@ -71,6 +78,8 @@ Resolution order:
 1. If `executor` is specified and available → use it.
 2. If `executor` is unavailable or not specified → find any available agent satisfying `capability` using the capability table below.
 3. If no agent satisfies `capability` → pause and ask the developer which agent to use. Their choice applies for the rest of the run.
+
+Availability definition: an executor is **available** if it is a recognized agent in the current IDE session that can receive delegated instructions.
 
 **Default capability → executor table:**
 
@@ -125,6 +134,12 @@ When a task's `success` criteria are not met after execution:
 | `skip` | Log a warning: `⚠️ <task-name> failed — skipping`. Mark as skipped. Any tasks that `depends_on` this task are also skipped. Continue. |
 | `retry` | Re-run the task once. If it fails again, treat as `stop`. |
 | `fallback:<task-name>` | Skip this task and run the named fallback task next. Rules: (a) the fallback task must exist and must not be the current task; (b) the fallback task must have all its own `depends_on` already satisfied — if not, stop instead with a clear error; (c) the fallback task runs at most once in this role; (d) if the fallback task itself fails, its own `on_failure` applies. The fallback task's output is treated as the current task's output for downstream `depends_on` checks. |
+
+Concrete fallback example:
+- `build-artifact` fails with `on_failure: fallback:restore-artifact`.
+- `restore-artifact` runs successfully and produces `artifact.zip`.
+- `publish-artifact` depends on `build-artifact`.
+- Treat `build-artifact` as satisfied via fallback, using `restore-artifact`'s output as `build-artifact`'s output for downstream checks, so `publish-artifact` can proceed.
 
 ### Step 6: Final summary
 
