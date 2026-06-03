@@ -42,3 +42,6 @@ skills-lock.json
 
 # --- OpenCode plugin SDK (vendored locally, resolved by OpenCode at runtime) ---
 package/
+skills/*-workspace/
+plans/*.md
+prds/*.md
