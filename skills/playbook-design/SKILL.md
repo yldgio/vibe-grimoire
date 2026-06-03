@@ -39,7 +39,7 @@ Collect:
 Ask: *"Does this workflow need runtime inputs that vary each time you run it? For example, an issue URL, branch name, or target environment."*
 
 If yes, collect for each variable:
-- **`name`** — a short identifier in kebab-case or snake_case (e.g. `issue_url`, `branch_name`, `target_env`)
+- **`name`** — a short identifier in snake_case (preferred) or kebab-case (e.g. `issue_url`, `branch_name`, `target_env`). Prefer snake_case to avoid ambiguity in `{{ variables.<name> }}` substitution.
 - **`default`** — a default value (string). Leave empty `""` if the variable is **required** at runtime; provide a non-empty string for an optional variable with a fallback.
 
 Variables are referenced in task `prompt` and `input` fields as `{{ variables.<name> }}`. `playbook-execute` will collect required variables from the developer before starting execution.
@@ -91,6 +91,7 @@ If yes, walk through checks by category:
 - *"Does this task produce a file?"* → offer `file_exists` and/or `file_contains` check
 - *"Can success be confirmed by running a command?"* → offer `command` check
 - *"Does this require your manual confirmation?"* → offer `human` check
+- *"Can success only be evaluated holistically — e.g., no critical findings remain, or the output reads correctly?"* → offer `agent_confirms` check
 
 Collect only the checks the developer confirms. Include the `checks` field in the output YAML.
 If no: record only `success` — `playbook-execute` will use its judgment protocol at runtime.
@@ -144,7 +145,7 @@ version: "1.0"                 # semver string
 variables:                     # optional — runtime inputs; referenced as {{ variables.<name> }}
   <var-name>: ""               # empty string = required at runtime; non-empty = default
 
-phases:
+phases:                        # optional but recommended — provides structure and context
   - name: <slug>
     description: <string>
 
@@ -184,7 +185,7 @@ tasks:
 
 ## Concrete Example
 
-The following is a complete, valid Playbook demonstrating all Wave 1 schema features. Use it as a reference when writing or editing playbooks manually.
+The following is a complete, valid Playbook demonstrating the current schema features. Use it as a reference when writing or editing playbooks manually.
 
 **`./playbooks/implement-from-issue.yml`**
 
@@ -326,7 +327,7 @@ tasks:
 - `{{ variables.<name> }}` tokens in `prompt` and `input` are substituted at runtime by `playbook-execute` — they are recorded as-is in the YAML and resolved during execution.
 - `!include <path>` in a `prompt` field tells `playbook-execute` to load the referenced Markdown file at runtime and use its content as the prompt. The path must be relative to the playbook file. Useful for long, rich prompts that would clutter the YAML.
 - Tasks that have no blocking `depends_on` relationship run in parallel during execution. If the developer wants two tasks to run in parallel, simply do not add a `depends_on` between them.
-- A playbook with no `depends_on` anywhere is valid: tasks run in file order.
+- A playbook with no `depends_on` anywhere is valid: all tasks are ready immediately and launch simultaneously in one parallel batch.
 - The `executor` field is optional. When omitted, `playbook-execute` selects an executor based on `capability`.
 
 When the playbook is saved, return control to the user.
