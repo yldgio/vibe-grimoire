@@ -53,6 +53,21 @@
         "Skill notes that playbook-execute will prompt for required (empty) variables at run time"
       ],
       "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "Design a playbook called 'data-pipeline' with one task: 'process-data' (capability: implementation). When asked for success criteria, the developer answers: 'task is done'.",
+      "expected_output": "The skill should detect that 'task is done' is vague and warn the developer that it may be hard to verify automatically. It should ask the developer to provide a more specific criterion. After the developer provides a better criterion (e.g., 'output.csv exists and contains at least 100 rows'), the skill should offer to add structured checks. If the developer accepts and confirms the task produces a file, the skill generates a file_exists check. The saved YAML must contain both the success field and a checks field with the file_exists entry.",
+      "assertions": [
+        "Skill detects the vague success text ('task is done') and warns the developer",
+        "Warning message suggests concrete alternatives (file name, command, visible outcome)",
+        "Skill prompts developer to revise before continuing",
+        "After revision, skill offers to add structured checks by category",
+        "Skill asks by category: file? command? human?",
+        "If developer accepts a file check, output YAML contains a checks field with a file_exists entry",
+        "Output YAML contains both success and checks fields on the task"
+      ],
+      "files": []
     }
   ]
 }

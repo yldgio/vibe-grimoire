@@ -75,6 +75,26 @@ For each task, interview the developer to collect all schema fields. Go phase by
 
 **Tip:** For decision or approval gates, use `executor: human`. The developer will be shown `prompt` and asked to respond.
 
+**After collecting `success`:**
+
+**Quality check** — if the developer's answer contains only vague wording (e.g., "done", "complete", "finished", "task is done") with no specific file, output, or command, warn:
+
+> *"This success criterion may be hard to verify automatically. Can you be more specific? For example: the name of a file produced, a command that should pass, or a visible outcome."*
+
+Ask the developer to revise before continuing.
+
+**Offer structured `checks`** — once `success` is non-vague, ask:
+
+> *"Would you like to add structured `checks` for this task? These allow `playbook-execute` to verify completion automatically using tools."*
+
+If yes, walk through checks by category:
+- *"Does this task produce a file?"* → offer `file_exists` and/or `file_contains` check
+- *"Can success be confirmed by running a command?"* → offer `command` check
+- *"Does this require your manual confirmation?"* → offer `human` check
+
+Collect only the checks the developer confirms. Include the `checks` field in the output YAML.
+If no: record only `success` — `playbook-execute` will use its judgment protocol at runtime.
+
 ### Step 5: Validate before saving
 
 Apply these rules and raise any violations before writing the file:
@@ -143,6 +163,20 @@ tasks:
       <text>
     success: |                 # mandatory — observable completion criteria
       <text>
+    checks:                    # optional — typed verification steps (all must pass); backward compatible
+      - type: file_exists      # file must exist and be non-empty
+        path: <path>
+      - type: file_contains    # file must contain pattern (substring match)
+        path: <path>
+        pattern: <substring>
+      - type: command          # run shell command; check exit code
+        run: <shell command>
+        expect_exit: 0         # default 0
+        expect_output: <str>   # optional: stdout must contain this string
+      - type: human            # pause and ask developer YES/NO
+        prompt: <question>
+      - type: agent_confirms   # agent evaluates with LLM judgment
+        description: <text>
     on_failure: stop           # stop | skip | retry | fallback:<task-name>
 ```
 
@@ -186,6 +220,12 @@ tasks:
       - Any stated constraints or non-goals
     success: |
       issue-summary.md exists and contains at least one acceptance criterion
+    checks:
+      - type: file_exists
+        path: issue-summary.md
+      - type: file_contains
+        path: issue-summary.md
+        pattern: "acceptance criteria"
     on_failure: stop
 
   - name: explore-codebase
@@ -254,6 +294,11 @@ tasks:
     success: |
       security-findings.md exists.
       No CRITICAL or HIGH severity findings are unresolved.
+    checks:
+      - type: file_exists
+        path: security-findings.md
+      - type: agent_confirms
+        description: No CRITICAL or HIGH severity findings remain unresolved in security-findings.md
     on_failure: stop
 
   - name: open-pr

@@ -60,6 +60,7 @@ Before running any task, validate the playbook:
 8. **executor values**: if specified, must be one of `main | explore | code-review | security-review | human | custom:<name>`. An invalid value is a validation error.
 9. **on_failure values**: must be one of `stop | skip | retry | fallback:<task-name>`. An invalid value is a validation error.
 10. **fallback target exists and is valid**: if `on_failure: fallback:<task-name>`, that task must exist, must not equal the current task, and must not create a fallback loop (A→B→A).
+11. **`checks` structural validity**: if a task has a `checks` field, each item must have a valid `type` (`file_exists | file_contains | command | human | agent_confirms`). Required fields per type: `file_exists` → `path`; `file_contains` → `path` + `pattern`; `command` → `run`; `human` → `prompt`; `agent_confirms` → `description`. An invalid or incomplete check item is a validation error.
 
 If validation fails, report every violation clearly, then stop without running any tasks.
 
@@ -155,14 +156,42 @@ For non-human executors, delegate the task to the resolved agent with:
 
 #### 4e. Verify success
 
-After the executor completes, evaluate whether the `success` criteria are met. The `success` field describes an observable state — check it:
-- File exists → verify the file is present and non-empty
-- Test passes → confirm the build/test output shows passing
-- Developer responded → evaluate the response against the stated `success` criteria (not just "any response")
-- Any other description → use judgment; when uncertain, ask the developer to confirm
+After the executor completes, evaluate whether the task's success criteria are met.
 
-If `success` is met: mark the task `completed` (✅) and proceed.
-If `success` is not met: apply `on_failure` (see Step 5).
+**Path A — `checks` present:**
+
+Run each item in the `checks` list in order. For each type:
+
+| Type | Tool action |
+|------|------------|
+| `file_exists` | Use the View/Read tool to open `path`. Pass if file exists and is non-empty. |
+| `file_contains` | Read `path`; search for `pattern` as a substring. Pass if found. |
+| `command` | Execute `run` in the terminal. Compare exit code to `expect_exit` (default 0). If `expect_output` is set, verify stdout contains it. |
+| `human` | Display `prompt` to the developer. Wait for YES or NO response. NO = fail. |
+| `agent_confirms` | Evaluate `description` using LLM judgment. If not confident, count as fail. Report reasoning either way. |
+
+On first failing check: stop evaluating remaining checks. Capture failure evidence:
+- **check type** and its identifying field (`path` / `run` / `prompt` / `description`)
+- **what was expected** (pattern, exit code, YES confirmation, agent assessment)
+- **what was found** (file missing, pattern absent, actual exit code, developer NO, agent reasoning)
+
+Use the captured evidence as the `<reason>` in the failure report and final summary.
+
+If all checks pass: mark the task `completed` (✅).
+If any check fails: apply `on_failure` (see Step 5).
+
+---
+
+**Path B — `success` only (no `checks`):**
+
+Apply this priority-ordered judgment protocol. Work through levels in order; stop at the first level that produces a determination:
+
+1. **File mention** — if `success` references a specific filename: use the View/Read tool to check whether the file exists and is non-empty. Verdict is based on the tool result.
+2. **Command mention** — if `success` mentions "test passes", "build", "exits 0", or a specific command: attempt to run the described command. If the command is ambiguous, ask the developer for the exact invocation before running. Verdict is based on exit code / output.
+3. **Human observable** — if `success` describes something only a person can confirm (e.g., "PR URL returned", "email sent", "developer approved"): display the `success` text to the developer as a confirmation prompt and wait for YES/NO. Never silently pass a human observable.
+4. **LLM judgment** — evaluate the `success` text and available evidence with LLM reasoning. Explicitly state the evidence considered. If confidence is below ~70%, ask the developer to confirm rather than silently passing.
+
+On any failure: capture what was checked and what was found. Use as `<reason>` in the failure report.
 
 #### 4f. Report completion
 

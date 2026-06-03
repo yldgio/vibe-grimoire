@@ -180,6 +180,96 @@
           "description": "Playbook with scan-a and scan-b in parallel, scan-a failing with on_failure:stop"
         }
       ]
+    },
+    {
+      "id": 11,
+      "prompt": "Run ./playbooks/checks-file-exists.yml where 'generate-report' has checks: [{type: file_exists, path: report.md}]. The executor produces report.md. After the task completes, the check should pass.",
+      "expected_output": "After the executor completes, the skill should run Path A verification: use the View/Read tool to confirm report.md exists and is non-empty. Since the file was produced, the check passes and the task is marked completed (✅). The final summary shows generate-report as completed.",
+      "assertions": [
+        "Skill uses Path A (checks) for verification, not free-text judgment",
+        "Skill uses the View/Read tool to verify report.md exists and is non-empty",
+        "file_exists check passes because the file was produced",
+        "Task is marked completed in the final summary",
+        "No developer confirmation prompt is shown (check is tool-verifiable)"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/checks-file-exists.yml",
+          "description": "Playbook with generate-report task having checks: [{type: file_exists, path: report.md}]"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Run ./playbooks/checks-file-contains.yml where 'write-summary' has checks: [{type: file_contains, path: summary.md, pattern: 'acceptance criteria'}]. The executor produces summary.md but does NOT include the text 'acceptance criteria'.",
+      "expected_output": "After the executor completes, the skill should run Path A verification: read summary.md and search for the substring 'acceptance criteria'. Since the pattern is absent, the check fails. Failure evidence must capture: check type (file_contains), path (summary.md), expected pattern ('acceptance criteria'), and what was found (file exists but pattern not present). The task fails and on_failure applies.",
+      "assertions": [
+        "Skill reads summary.md using the View/Read tool",
+        "Skill searches for 'acceptance criteria' as a substring",
+        "Check fails because the pattern is absent",
+        "Failure evidence captures: check type, path, expected pattern, and 'pattern not found' finding",
+        "Failure reason in the final summary includes the captured evidence"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/checks-file-contains.yml",
+          "description": "Playbook with write-summary task having checks: [{type: file_contains, path: summary.md, pattern: 'acceptance criteria'}]"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "Run ./playbooks/checks-command.yml where 'run-tests' has checks: [{type: command, run: 'npm test', expect_exit: 0}]. The executor completes and the check should be run.",
+      "expected_output": "After the executor completes, the skill should run Path A verification: execute 'npm test' in the terminal and compare the exit code to 0. If the command exits 0, the check passes and the task is marked completed. If it exits non-zero, the check fails with failure evidence capturing: command run, expected exit code (0), and actual exit code.",
+      "assertions": [
+        "Skill executes 'npm test' in the terminal as part of verification",
+        "Skill compares exit code to the expected value (0)",
+        "If exit code matches, task is marked completed",
+        "If exit code does not match, failure evidence captures: command, expected_exit, and actual exit code",
+        "Skill does not ask developer to confirm if the command can be run directly"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/checks-command.yml",
+          "description": "Playbook with run-tests task having checks: [{type: command, run: 'npm test', expect_exit: 0}]"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "Run ./playbooks/checks-human.yml where 'approve-output' has checks: [{type: human, prompt: 'Does the generated report meet quality standards?'}]. After the executor completes, the skill should pause for developer confirmation.",
+      "expected_output": "After the executor completes, the skill should run Path A verification: display the check's prompt ('Does the generated report meet quality standards?') to the developer and wait for YES or NO. If YES, the check passes and the task is marked completed. If NO, failure evidence captures: check type (human), the prompt text, and 'developer answered NO'.",
+      "assertions": [
+        "Skill displays the check's prompt text (not the task's prompt) to the developer",
+        "Skill waits for YES or NO response from the developer",
+        "YES response → check passes → task completed",
+        "NO response → check fails → failure evidence: type=human, prompt shown, 'developer answered NO'",
+        "The task's own prompt field is NOT redisplayed during the check (only the check's prompt)"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/checks-human.yml",
+          "description": "Playbook with approve-output task having checks: [{type: human, prompt: 'Does the generated report meet quality standards?'}]"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "Run ./playbooks/path-b-demo.yml where 'create-pr' has no checks field and success: 'PR URL returned and accessible'. After the executor completes, verify success using Path B.",
+      "expected_output": "Since no checks field is present, the skill should use Path B free-text judgment. The success text describes a human observable (a URL returned), so the skill reaches judgment level 3: display the success text to the developer as a confirmation prompt and wait for YES/NO. It must NOT silently pass. YES marks the task completed; NO triggers on_failure.",
+      "assertions": [
+        "Skill uses Path B (free-text fallback) because no checks field is present",
+        "Skill applies the priority-ordered protocol: file mention? No. Command mention? No. Human observable? Yes.",
+        "Skill displays the success text to the developer as a confirmation prompt",
+        "Skill waits for developer YES/NO — does NOT silently pass",
+        "YES response marks the task completed; NO response triggers on_failure"
+      ],
+      "files": [
+        {
+          "path": "./playbooks/path-b-demo.yml",
+          "description": "Playbook with create-pr task having no checks field and success: 'PR URL returned and accessible'"
+        }
+      ]
     }
   ]
 }
