@@ -62,7 +62,7 @@ Before running any task, validate the playbook:
 10. **fallback target exists and is valid**: if `on_failure: fallback:<task-name>`, that task must exist, must not equal the current task, and must not create a fallback loop (A→B→A).
 11. **`checks` structural validity**: if a task has a `checks` field, each item must have a valid `type` (`file_exists | file_contains | command | human | agent_confirms`). Required fields per type: `file_exists` → `path`; `file_contains` → `path` + `pattern`; `command` → `run`; `human` → `prompt`; `agent_confirms` → `description`. An invalid or incomplete check item is a validation error.
 
-If validation fails, report every violation clearly, then stop without running any tasks.
+If validation fails, report every violation clearly, then stop without running any tasks. Keep the error output crisp and actionable — the developer needs to know what to fix, not a simulation of what would have happened. Imaginary execution analysis after a fatal validation error is noise, not help: it can mislead the developer into thinking the playbook's logic is understood when it isn't, and it buries the actual fix instruction. State the violation, point to the line/field, stop.
 
 ### Step 2.5: Collect and substitute variables
 
@@ -74,6 +74,7 @@ If the playbook has a `variables` block:
      • issue_url (required): 
      • branch_name (optional, default: "main"):
    ```
+   Wait for a response before proceeding. Do not assume or infer a value for a required variable — the playbook author left the default empty precisely because no safe default exists. A guessed value looks plausible but silently sends wrong data into every prompt downstream; the developer has no way to know the substitution happened incorrectly. If the developer doesn't provide a value, stop and explain why the value is needed.
 2. Merge developer-supplied values with non-empty defaults. Every variable must now have a resolved value.
 3. **Substitute** `{{ variables.<name> }}` tokens in every `prompt` and `input` field, replacing them with their resolved values. This substitution happens once, before any task executes.
 4. If a `{{ variables.<name> }}` token references a variable not declared in `variables`, treat it as a validation error: report clearly and stop.
