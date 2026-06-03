@@ -26,7 +26,7 @@ Use a subagent to explore the repo and verify the user's assertions. Understand 
 
 ### 3. Interview the user
 
-Relentlessly interview the user about every aspect of the plan until you reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
+Relentlessly interview the user about every aspect of the plan until you reach a shared understanding. Walk down each branch of the design tree, resolving dependencies between decisions one-by-one. Ask one question at a time, and confirm understanding after each answer and always suggest the best answer based on your knowledge of the codebase and best practices. This is a recursive process that will continue until you have a clear, shared vision for the feature.
 
 As user stories accumulate, continuously assess the overall complexity of the feature. When the scope feels large — many moving parts, cross-cutting concerns, or a broad user-facing surface area — challenge the user to identify a first sufficient MVP wave before expanding further. Ask: *"What is the smallest version of this that delivers real value?"* This is not about counting stories; it is about understanding whether the work can be meaningfully shipped in phases.
 
@@ -61,9 +61,9 @@ Run a subagent to submit so you keep your main context clean:
 
 The problem that the user is facing, from the user's perspective.
 
-## Solution
+## Solution, Done looks like, and User Experience
 
-The solution to the problem, from the user's perspective.
+The solution to the problem, from the user's perspective. What 'done' looks like and the expected user experience.
 
 ## User Stories
 
@@ -108,6 +108,15 @@ A list of testing decisions that were made. Include:
 - A description of what makes a good test (only test external behavior, not implementation details)
 - Which modules will be tested
 - Prior art for the tests (i.e. similar types of tests in the codebase)
+
+## Validation Criteria
+
+A list of criteria that can be used to validate whether the implementation meets the requirements. This can include:
+- Specific scenarios that must work
+- Performance benchmarks
+- User acceptance criteria
+- Metrics to be collected
+- Success criteria for each implementation wave
 
 ## Out of Scope
 
