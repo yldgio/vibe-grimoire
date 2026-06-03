@@ -5,11 +5,8 @@ Key paths: `skills/` published skills · `hooks/` canonical policies · `.github
 
 ## Memory
 
-If `memento-memento_context_assemble` is available, call it at the start of each session with `project="vibe-grimoire"` to load persisted context. Use the memento tools to log non-obvious decisions and patterns discovered during the session — not facts already documented here. Skip entirely if the tool is not present.
+Always update this file when learning something new about how to design or execute skills. This is the single source of truth for best practices, patterns, and conventions. When you learn a new lesson, add it here. When you need to check how to do something, check here first. This file is the distilled wisdom of all skill maintainers and authors — treat it as your go-to reference for everything about skills.
 
-## Kaizen Learnings
+## Docs
 
-<!-- Populated automatically by the kaizen skill. One line per entry. -->
-- **2026-03-30** [git push without -u does not set upstream tracking](kaizen/20260330-git-push-no-upstream.md) — always use `git push -u origin <branch>` or follow up with `git branch --set-upstream-to`
-- **2026-05-06** [keep skill descriptions under 900 characters](kaizen/20260506-skill-desc-limit.md) — frontmatter descriptions are registry metadata; keep them concise and within the repo limit
-
+Alway update the README and the docs/*.md files when you make a change to how skills are designed or executed. The README is the public-facing guide for skill authors; the docs/*.md files are the internal reference for skill maintainers. Both should be kept up to date with the latest changes and best practices.

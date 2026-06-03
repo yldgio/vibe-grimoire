@@ -57,7 +57,7 @@ Two skills form a design-and-execute loop for repeatable, composable agentic wor
 playbook-design ──────────────────────────────────► playbook-execute
       │                                                     │
  Structured interview                          Parse YAML → topological sort
- → valid YAML Playbook                         → sequential execution
+ → valid YAML Playbook                         → parallel batch execution
  → ./playbooks/<name>.yml                      → on_failure handling
                                                → progress reporting
 ```
@@ -85,7 +85,7 @@ Each skill is independently useful — use any one in isolation or chain them in
 
 Design a repeatable, versioned, executable workflow through a structured interview. Produces a YAML Playbook file saved to `./playbooks/<name>.yml`.
 
-- **Interview-driven** — elicits playbook name, phases, and every task field (capability, executor, depends_on, input, output, prompt, success, on_failure)
+- **Interview-driven** — elicits playbook name, phases, variables, and every task field (capability, executor, depends_on, input, output, prompt, success, checks, on_failure)
 - **Inline validation** — catches missing `success` fields, dangling `depends_on` references, invalid capability/executor values, and dependency cycles before saving
 - **Schema-complete output** — produces a YAML artifact that `playbook-execute` can run without modification
 - **Concrete example embedded** — `implement-from-issue.yml` is included in the skill docs for manual authoring reference
@@ -99,10 +99,14 @@ skills/playbook-design/evals/evals.json
 
 ### `playbook-execute`
 
-Execute a Playbook YAML file end-to-end: validate → topological sort → sequential execution → success verification → on_failure handling → progress reporting.
+Execute a Playbook YAML file end-to-end: resolve `!include` → substitute variables → validate → topological sort → parallel batch execution → success verification → on_failure handling → progress reporting.
 
-- **Pre-flight validation** — checks all schema constraints before running a single task (phase refs, depends_on integrity, cycles, enum values)
+- **Pre-flight validation** — checks all schema constraints before running a single task (phase refs, depends_on integrity, cycles, enum values, checks structure)
+- **Parallel batch execution** — independent tasks (no shared `depends_on`) run simultaneously via background agents; next batch launches when all current tasks resolve
 - **Topological execution** — tasks always run after their dependencies, regardless of file order
+- **`!include` resolution** — external `.md` files referenced in `prompt` fields are inlined at parse time
+- **Variable substitution** — collects required `variables` from the developer before execution; substitutes `{{ variables.<name> }}` in all `prompt` and `input` fields
+- **Typed `checks` verification** — after each task, runs `file_exists`, `file_contains`, `command`, `human`, or `agent_confirms` checks; falls back to LLM judgment protocol when `checks` is absent
 - **Human executor support** — pauses on `executor: human` tasks, displays the prompt, and waits for developer response
 - **Capability fallback** — resolves executor by capability when the preferred executor is absent; pauses to ask if no match found
 - **on_failure handling** — `stop | skip | retry | fallback:<task-name>` with skip cascading to dependent tasks

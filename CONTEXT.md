@@ -17,7 +17,7 @@ A named group of Tasks within a Playbook that share a logical objective. Phases 
 _Avoid_: stage, step (use Task for atomic steps)
 
 **Task**:
-The atomic executable unit inside a Phase. Has a unique slug `name`, a `capability`, an optional `executor`, dependency declarations, input/output contracts, an agent `prompt`, and `success` criteria.
+The atomic executable unit inside a Phase. Has a unique slug `name`, a `capability`, an optional `executor`, dependency declarations, input/output contracts, an agent `prompt`, `success` criteria, and optional structured `checks`.
 _Avoid_: step, action, job
 
 **Capability**:
@@ -28,6 +28,14 @@ _Avoid_: role, type
 The preferred concrete agent for a Task (e.g., `main`, `explore`, `code-review`, `human`, `custom:beck`). Optional — `playbook-execute` falls back to resolving by `capability` if absent.
 _Avoid_: agent, runner
 
+**Variables**:
+Runtime inputs declared at the playbook level. Referenced as `{{ variables.<name> }}` in task `prompt` and `input` fields. An empty string default means the variable is required at runtime; a non-empty default provides a fallback value. Collected from the developer by `playbook-execute` before execution starts.
+_Avoid_: params, arguments
+
+**checks**:
+Optional typed verification steps on a Task, run by `playbook-execute` after execution to confirm success. All listed checks must pass. Types: `file_exists`, `file_contains`, `command`, `human`, `agent_confirms`. When absent, `playbook-execute` applies its judgment protocol to evaluate the `success` field.
+_Avoid_: tests, assertions
+
 **playbook-design**:
 The skill that interviews a user and produces a Playbook `.yml` file. Design-time artifact.
 
@@ -36,10 +44,12 @@ The skill that reads a Playbook `.yml` file and runs its Tasks in dependency ord
 
 ## Relationships
 
-- A **Playbook** contains one or more **Phases**
+- A **Playbook** contains one or more **Phases** (optional in execution, always present when designed with `playbook-design`)
+- A **Playbook** may declare **Variables** (runtime inputs substituted before execution)
 - A **Phase** contains one or more **Tasks**
 - A **Task** declares its **Capability** (required) and preferred **Executor** (optional)
 - A **Task** may depend on other **Tasks** via `depends_on` (list of Task `name` slugs)
+- A **Task** may include optional **checks** (typed verification steps run after execution)
 - **playbook-design** produces a **Playbook**; **playbook-execute** consumes it
 
 ## Example dialogue
