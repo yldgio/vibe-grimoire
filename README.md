@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-28-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-31-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -71,10 +71,10 @@ A **Playbook** is a machine-executable workflow graph: named Phases containing T
 Several skills chain together to take a feature idea all the way to tracked work items:
 
 ```
-create-prd ──► pre-mortem (optional) ──► plan-from-prd ──► prd-slice
-   │                  │                        │                │
-Write the PRD   Stress-test         Local phased plan    Tracker issues
-               before coding       (./plans/*.md)     (AzDO / GH / Jira)
+the-goal (optional) ──► create-prd ──► pre-mortem (optional) ──► plan-from-prd ──► prd-slice
+      │                     │                  │                        │                │
+ Clarify the          Write the PRD      Stress-test         Local phased plan    Tracker issues
+ real goal                              before coding       (./plans/*.md)     (AzDO / GH / Jira)
 ```
 
 Each skill is independently useful — use any one in isolation or chain them in sequence.
@@ -150,6 +150,22 @@ Capture significant architectural choices as durable, human-readable records tha
 
 ```
 skills/adr/SKILL.md
+```
+
+---
+
+### `the-goal`
+
+Extract and clarify the real goal behind a feature, change, or idea through a focused, one-question-at-a-time interview. Inspired by Goldratt's *The Goal*.
+
+- **Relentless interviewer** — uses `ask_user` to ask one question at a time, never inline text
+- **Preference ranking** — before each question, lists likely answers best-first with a one-sentence reason for the top pick
+- **Small-scope bias** — challenges growing scope with *"Is this one goal or several?"*
+- **Decision verification** — restates and confirms each decision before moving on
+- **Output** — a goal spec with four sections: What & Why, Done Looks Like, Boundaries, Decisions Record
+
+```
+skills/the-goal/SKILL.md
 ```
 
 ---
@@ -708,6 +724,7 @@ skills/           # Published skills — source of truth
 ├── setup-repo/
 ├── tdd/
 ├── techdebt/
+├── the-goal/
 ├── the-immortals/
 ├── tool-guard/
 └── triage-bug/
