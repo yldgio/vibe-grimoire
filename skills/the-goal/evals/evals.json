@@ -1,0 +1,23 @@
+{
+  "skill_name": "the-goal",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to add notifications to my app. Like push notifications and maybe email too, and in-app ones. Users keep missing important stuff.",
+      "expected_output": "The agent should interview to find the REAL goal (users missing important info), bias toward one small goal (e.g., just solving the 'missing critical updates' problem), and produce a focused spec with What & Why, Done Looks Like, Boundaries, Decisions Record.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "We need to refactor the auth system. It's getting complex and we want to add SSO but also the tests are slow and the code is hard to read.",
+      "expected_output": "The agent should untangle this into separate goals (SSO support vs test speed vs code readability), challenge the user to identify the single constraint they're trying to break, and produce a spec for the one true goal.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I'm thinking about building a CLI tool that helps developers manage their dotfiles across machines. Maybe with git sync and templating.",
+      "expected_output": "The agent should interview to discover why (pain point with inconsistent environments? onboarding new machines?), bias toward the smallest meaningful goal, and produce a clear spec without jumping into solution space.",
+      "files": []
+    }
+  ]
+}
