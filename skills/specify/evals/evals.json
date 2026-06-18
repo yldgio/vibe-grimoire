@@ -1,0 +1,23 @@
+{
+  "skill_name": "specify",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just finished defining my goal with the-goal skill. The goal is: 'Add real-time collaborative editing to our markdown notes app so two users can edit the same note simultaneously without losing changes.' Done looks like: 'Two users open the same note, both type at the same time, both see each other's changes within 500ms, no data is lost.' Boundaries: 'No offline support, no more than 2 concurrent editors, no rich text — markdown only.' Now I want to specify exactly what to build. Use the specify skill.",
+      "expected_output": "A structured spec document covering scope, constraints, task breakdown, and evaluation criteria with both deterministic checks and LLM-as-judge criteria. Should push back if scope grows too large.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "I want to build a CLI tool that takes a CSV file and generates a PDF report with charts. I haven't defined the goal yet but I know roughly what I want: read CSV, detect column types, auto-generate bar/line/pie charts for numeric columns, and produce a polished PDF. Can you help me specify this?",
+      "expected_output": "Should first establish the goal (since no the-goal output exists), then proceed through specification and evaluation criteria. Should challenge scope if the user tries to add too many chart types or features.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "We need to migrate our user authentication from session-based to JWT tokens. The goal is already clear: switch to stateless auth so we can horizontally scale without sticky sessions. Done looks like: all endpoints accept JWT, sessions table is dropped, existing users get new tokens on next login. Out of scope: OAuth, SSO, refresh token rotation. Help me write the spec with evaluation criteria.",
+      "expected_output": "A spec that includes the auth migration tasks, deterministic checks (e.g., 'all endpoints return 401 without valid JWT', 'sessions table does not exist'), LLM-as-judge criteria for things like error message quality, and an adversarial verification protocol.",
+      "files": []
+    }
+  ]
+}
