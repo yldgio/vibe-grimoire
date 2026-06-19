@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-31-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-33-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -78,6 +78,23 @@ the-goal (optional) ──► create-prd ──► pre-mortem (optional) ──�
 ```
 
 Each skill is independently useful — use any one in isolation or chain them in sequence.
+
+---
+
+### Spec → Implement Workflow
+
+A leaner alternative path from goal to verified implementation:
+
+```
+the-goal ──► specify ──────────────────────────► implement-spec
+    │            │                                       │
+ Clarify    Define spec with                   Autonomous implementation
+ the goal   measurable criteria                with adversarial verification
+            (./specs/*.md)                     and convergence loop
+```
+
+`specify` produces a living spec document with scope, task breakdown, and two-tier evaluation criteria.
+`implement-spec` reads that spec, builds a task queue in the session DB, implements in parallel, and iterates until all criteria pass.
 
 ---
 
@@ -166,6 +183,44 @@ Extract and clarify the real goal behind a feature, change, or idea through a fo
 
 ```
 skills/the-goal/SKILL.md
+```
+
+---
+
+### `specify`
+
+Guide the user through a structured specification process: define the goal, specify exactly what to build (and what NOT to build), and establish measurable evaluation criteria — all before implementation begins.
+
+- **Three-phase checklist** — Goal → Specification → Evaluation Criteria
+- **Same interview pattern throughout** — one question at a time, preference ranking, confirm before moving on
+- **Scope pushback** — insists on reducing scope when things grow too large
+- **Two-tier verification** — deterministic checks + LLM-as-judge criteria with measurable rubrics
+- **Adversarial by design** — the spec requires a different model for verification
+- **Convergence criterion** — defines when to stop iterating (quality floor, diminishing returns, max iterations)
+- **Output** — `./specs/<feature-name>.md`
+
+```
+skills/specify/SKILL.md
+skills/specify/evals/evals.json
+```
+
+---
+
+### `implement-spec`
+
+Autonomously implement a specification produced by the `specify` skill. Uses the session database as source of truth and adversarial multi-model verification to guarantee quality.
+
+- **DB-driven task queue** — creates `spec_tasks`, `verification_log`, and `iteration_log` tables in the session DB
+- **Parallel execution** — implements independent tasks simultaneously (respects dependency graph)
+- **Two-tier verification** — deterministic checks first (fast), then adversarial LLM-judge review
+- **Convergence loop** — iterates until quality floor met, diminishing returns, or max iterations
+- **Resumable** — if session restarts, resumes from current DB state
+- **Minimal user involvement** — only escalates on repeated failures or stalled convergence
+- **Living spec updates** — updates the spec if implementation reveals wrong assumptions
+
+```
+skills/implement-spec/SKILL.md
+skills/implement-spec/evals/evals.json
 ```
 
 ---

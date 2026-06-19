@@ -1,0 +1,23 @@
+{
+  "skill_name": "implement-spec",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I have a spec at ./specs/csv-report.md that was produced by the specify skill. It defines a CLI tool that reads a CSV and generates a PDF report. The spec has 7 tasks, deterministic checks, LLM-as-judge criteria, adversarial protocol, and convergence rules. Please implement it using the implement-spec skill.",
+      "expected_output": "The skill should: create the spec_tasks table and populate it from the spec, explore the codebase, identify ready tasks, spawn implementation agents, run deterministic checks, and invoke adversarial verification. It should use the session DB as the source of truth throughout.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Resume implementation. I had to restart the session but the spec_tasks table already exists with 3 tasks passed and 2 still pending. Use implement-spec to pick up where we left off.",
+      "expected_output": "The skill should detect the existing spec_tasks table, NOT recreate it, query current state, identify ready tasks, and continue the implementation loop from current state.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Implement the JWT migration spec at ./specs/jwt-migration.md. It has 6 tasks with dependencies. Tasks 1 has no deps, tasks 2-4 depend on task 1, task 5 depends on 3 and 4, task 6 depends on all. Use implement-spec.",
+      "expected_output": "The skill should parse the dependency graph, implement task 1 first, then parallelize tasks 2-4 since they're all independent once task 1 passes, then task 5 after 3+4 pass, then task 6 last. Should demonstrate parallel execution of independent tasks.",
+      "files": []
+    }
+  ]
+}
