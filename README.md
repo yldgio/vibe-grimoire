@@ -3,7 +3,7 @@
 > Reusable agentic skills, hooks, and policies for AI-augmented ("vibe") coding.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Skills](https://img.shields.io/badge/skills-33-blue)](#skills)
+[![Skills](https://img.shields.io/badge/skills-34-blue)](#skills)
 
 AI coding agents are only as good as their instructions. **code-skills** is a curated toolkit of structured prompt files — called _skills_ — that tell your agent exactly what to do, when to stop, and what tools are allowed.
 
@@ -293,6 +293,25 @@ skills/tool-guard/SKILL.md
 skills/tool-guard/references/copilot-cli.md
 skills/tool-guard/references/opencode.md
 skills/tool-guard/references/claude-code.md
+```
+
+---
+
+### `copilot-extension`
+
+Reference skill for authoring GitHub Copilot CLI extensions that add tools, commands, hooks, or session-event behavior.
+
+- **Workflow-first** -- read the SDK guide, choose scope, scaffold, edit, reload, inspect, then smoke-test the smallest path
+- **Must-know API only** -- keeps the essential `joinSession` shapes inline and points back to the bundled SDK docs for exact types
+- **Grounded in real examples** -- patterns are derived from `copilot-compress`, `copilot-kaizen`, and `copilot-ledger`
+- **Canvas handoff** -- points canvas-heavy work to `create-canvas` instead of duplicating that API surface
+
+```
+skills/copilot-extension/SKILL.md
+skills/copilot-extension/references/minimal.mjs
+skills/copilot-extension/references/tools-pattern.mjs
+skills/copilot-extension/references/commands-pattern.mjs
+skills/copilot-extension/references/hooks-pattern.mjs
 ```
 
 ---
@@ -762,6 +781,7 @@ skills/           # Published skills — source of truth
 ├── boris/
 ├── cleanup-writing/
 ├── clean-code/
+├── copilot-extension/
 ├── create-prd/
 ├── data-normalization/
 ├── design-it-twice/
