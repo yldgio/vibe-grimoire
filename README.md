@@ -211,6 +211,8 @@ skills/specify/evals/evals.json
 Autonomously implement a specification produced by the `specify` skill. Uses the session database as source of truth and adversarial multi-model verification to guarantee quality.
 
 - **DB-driven task queue** — creates `spec_tasks`, `verification_log`, and `iteration_log` tables in the session DB
+- **Inline evaluation support** — extracts Definition of Done and evaluation criteria directly from each task (new format); falls back to aggregate tables for backward compatibility
+- **DoD-driven implementation** — uses each task's "Done when" criterion as the primary success signal for implementers and verifiers
 - **Parallel execution** — implements independent tasks simultaneously (respects dependency graph)
 - **Two-tier verification** — deterministic checks first (fast), then adversarial LLM-judge review
 - **Convergence loop** — iterates until quality floor met, diminishing returns, or max iterations
