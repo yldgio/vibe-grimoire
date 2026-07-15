@@ -26,7 +26,15 @@ Autonomously implement a specification document, using the session database as t
 ## Prerequisites
 
 - A spec document (typically `./specs/<name>.md`) produced by `specify` or following the same structure
-- The spec must contain: Task Breakdown, Evaluation Criteria (deterministic checks + LLM-as-judge), Verification Protocol, and Convergence rules
+- The spec must contain:
+  - **Task Breakdown** with inline Definition of Done and Evaluation criteria per task (new format)
+    - OR tasks with aggregate Evaluation Criteria tables (old format)
+  - **Evaluation Criteria** (deterministic checks + LLM-as-judge) either inline per task or in aggregate tables
+  - **Verification Protocol** defining adversarial verification
+  - **Convergence** rules defining when to stop iterating
+- Each task must have:
+  - **Definition of Done** ("Done when:" field) — observable completion criterion
+  - **Evaluation criteria** (inline or in aggregate tables) — at least one deterministic check or LLM-as-judge criterion
 
 ---
 
@@ -47,11 +55,70 @@ SELECT name FROM sqlite_master WHERE type='table' AND name='spec_tasks';
 
 Read the spec document. Extract:
 
-1. **Tasks** — each task from the Task Breakdown section: ID, title, description, dependencies
-2. **Deterministic checks** — from the Evaluation Criteria table: which check applies to which task, how to run it, pass condition
-3. **LLM-as-judge criteria** — from the Evaluation Criteria table: question, evidence, scale, pass boundary
-4. **Convergence rules** — quality floor, diminishing returns threshold, max iterations
-5. **Adversarial protocol** — who verifies, how
+1. **Tasks** — each task from the Task Breakdown section: ID, title, description, dependencies, **definition of done (DoD)**, and **inline evaluation criteria**
+   - **DoD extraction**: Look for the "Done when:" field in each task. This is the observable completion criterion.
+   - **Inline evaluation extraction**: Look for the "Evaluation:" section in each task. Parse:
+     - **Deterministic check**: command/test → expected result
+     - **LLM-as-judge**: aspect → 1-5 scale → Pass ≥ N (if present)
+   - **Fallback**: If inline evaluation is missing, fall back to the aggregate Evaluation Criteria tables (for backward compatibility with old spec format)
+   
+2. **Deterministic checks** — prioritize inline "Evaluation > Deterministic check" from each task; if absent, fall back to the aggregate Evaluation Criteria table
+3. **LLM-as-judge criteria** — prioritize inline "Evaluation > LLM-as-judge" from each task; if absent, fall back to the aggregate table
+4. **Convergence rules** — quality floor, diminishing returns threshold, max iterations (from Convergence section)
+5. **Adversarial protocol** — who verifies, how (from Verification Protocol section)
+
+**Parsing strategy:**
+- For each task, first check for inline "Done when:" and "Evaluation:" fields (new format)
+- If inline evaluation is missing or incomplete, query the aggregate Evaluation Criteria tables
+- Store both DoD and evaluation criteria per task in the database
+- Warn if a task has no DoD or no evaluation criteria after both extraction attempts
+
+### Backward compatibility
+
+**Old spec format** (aggregate-only):
+```markdown
+### Task 1: Name
+- **Depends on**: none
+- **Description**: what to do
+
+## Evaluation Criteria
+### Deterministic Checks
+| Check | Task | How to run | Pass condition |
+| check-1 | Task 1 | npm test | All tests pass |
+```
+
+**New spec format** (inline + aggregate):
+```markdown
+### Task 1: Name
+- **Depends on**: none
+- **Description**: what to do
+- **Done when**: Observable completion criterion
+- **Evaluation**: 
+  - **Deterministic check**: npm test → All tests pass
+  - **LLM-as-judge**: Error messages → 1-5 clarity scale → Pass ≥ 4
+```
+
+**Parsing logic:**
+1. Try to extract inline `Done when:` and `Evaluation:` from the task
+2. If inline evaluation is absent or incomplete, fall back to aggregate tables
+3. Map aggregate table entries to the task by matching the "Task" column
+4. Store the merged result in `spec_tasks` table
+
+**Example extraction code (pseudocode):**
+```
+for each task in spec:
+  done_when = extract_field(task, "Done when:")
+  inline_checks = extract_field(task, "Evaluation: > Deterministic check:")
+  inline_judges = extract_field(task, "Evaluation: > LLM-as-judge:")
+  
+  if inline_checks is empty:
+    inline_checks = query_aggregate_table("Deterministic Checks", task_id)
+  
+  if inline_judges is empty:
+    inline_judges = query_aggregate_table("LLM-as-Judge Criteria", task_id)
+  
+  insert_into_db(task_id, done_when, inline_checks, inline_judges)
+```
 
 ### Create the session schema
 
@@ -60,11 +127,13 @@ CREATE TABLE IF NOT EXISTS spec_tasks (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
+  done_when TEXT,
   depends_on TEXT DEFAULT '[]',
   status TEXT DEFAULT 'pending',
   attempt INTEGER DEFAULT 0,
   max_attempts INTEGER DEFAULT 3,
   deterministic_checks TEXT DEFAULT '[]',
+  llm_judge_criteria TEXT DEFAULT '[]',
   created_at TEXT DEFAULT (datetime('now')),
   updated_at TEXT DEFAULT (datetime('now'))
 );
@@ -94,9 +163,44 @@ CREATE TABLE IF NOT EXISTS iteration_log (
 );
 ```
 
+**Schema updates:**
+- Added `done_when` field to store the Definition of Done per task (extracted from "Done when:" field)
+- Added `llm_judge_criteria` field to store LLM-as-judge criteria as JSON array (extracted from inline "Evaluation > LLM-as-judge")
+- Both `deterministic_checks` and `llm_judge_criteria` are stored as JSON for structured querying
+
 ### Populate tasks
 
-Insert each task from the spec into `spec_tasks`. Set `depends_on` as a JSON array of task IDs. Set `deterministic_checks` as a JSON array of check objects `{name, command, pass_condition}` mapped from the spec's Evaluation Criteria.
+Insert each task from the spec into `spec_tasks`:
+
+- **Task fields**: id, title, description, done_when, depends_on, deterministic_checks, llm_judge_criteria
+- **done_when**: Extract from "Done when:" field in each task (mandatory in new format)
+- **depends_on**: JSON array of task IDs from "Depends on:" field
+- **deterministic_checks**: JSON array of check objects extracted from inline "Evaluation > Deterministic check"
+  - Each object: `{name, command, pass_condition}`
+  - Fallback: If inline is missing, query the aggregate Evaluation Criteria > Deterministic Checks table
+- **llm_judge_criteria**: JSON array of judge objects extracted from inline "Evaluation > LLM-as-judge"
+  - Each object: `{name, question, evidence, scale, pass_threshold}`
+  - Fallback: If inline is missing, query the aggregate Evaluation Criteria > LLM-as-Judge Criteria table
+
+**Example INSERT:**
+
+```sql
+INSERT INTO spec_tasks (id, title, description, done_when, depends_on, deterministic_checks, llm_judge_criteria)
+VALUES (
+  'task-1',
+  'Implement user authentication',
+  'Add JWT-based authentication to the API',
+  'A user can log in with email/password and receive a JWT token that grants access to protected endpoints',
+  '[]',
+  '[{"name": "auth-test-passes", "command": "npm test -- auth.test.js", "pass_condition": "All tests pass with exit code 0"}]',
+  '[{"name": "error-message-quality", "question": "Does the error message explain what went wrong and how to fix it?", "evidence": "Read all error messages produced by the auth module", "scale": "1–5 scale where 5 = message explains cause, consequence, and fix action", "pass_threshold": 4}]'
+);
+```
+
+**Validation after population:**
+- Query for tasks with missing DoD: `SELECT id, title FROM spec_tasks WHERE done_when IS NULL OR done_when = '';`
+- Query for tasks with no evaluation criteria: `SELECT id, title FROM spec_tasks WHERE (deterministic_checks = '[]' OR deterministic_checks IS NULL) AND (llm_judge_criteria = '[]' OR llm_judge_criteria IS NULL);`
+- Warn the user if any tasks are missing critical fields
 
 ### Mark ready tasks
 
@@ -141,10 +245,14 @@ If no tasks are ready and some are still `pending` or `blocked`, check whether a
 
 For each ready task, spawn an implementation subagent. The subagent receives:
 
-- The task description from the spec
+- The task title, description, and **Definition of Done** from the spec
 - The codebase context from Phase 1
 - The "Decisions Already Made" and "Constraints" from the spec
 - Any issues from previous attempts (read from `verification_log`)
+
+**DoD as success criterion**: Pass the Definition of Done to the implementation subagent as the primary success criterion. The implementer knows their work is complete when the DoD is satisfied. Example instruction to subagent:
+
+> "Implement Task 1: Implement user authentication. Your work is done when: **A user can log in with email/password and receive a JWT token that grants access to protected endpoints**. After implementation, the following checks will verify your work: [list deterministic checks and LLM-judge criteria]."
 
 Update task status:
 ```sql
@@ -179,9 +287,19 @@ VALUES (?, ?, 'deterministic', ?, ?, ?, ?);
 
 Spawn a DIFFERENT model as the verifier. The verifier receives:
 
-- The LLM-as-judge criteria from the spec (questions, evidence to examine, scales, pass boundaries)
+- The LLM-as-judge criteria from the task (stored in `llm_judge_criteria` field, or from aggregate table if not present)
+- The **Definition of Done** for context: "This task is considered done when: [DoD]"
 - The implementation output and any artifacts
 - Instructions to evaluate objectively and produce a verdict per criterion
+
+**Criteria format**: Parse the `llm_judge_criteria` JSON array for the task. Each criterion has:
+- `name`: Identifier for the criterion
+- `question`: The question the judge must answer
+- `evidence`: What the judge should examine
+- `scale`: The scoring rubric (typically 1-5 with descriptions)
+- `pass_threshold`: Minimum score to pass (e.g., 4 means ≥ 4 passes)
+
+**Fallback**: If `llm_judge_criteria` is empty, query the aggregate Evaluation Criteria > LLM-as-Judge Criteria table for entries matching this task.
 
 The verifier must NOT be the same model that implemented. Use a different model ID or agent type.
 
@@ -275,6 +393,8 @@ FROM spec_tasks;
 ## Principles
 
 - **The DB drives decisions** — never rely on conversation memory for progress state. Always query.
+- **DoD is the success criterion** — every task has a Definition of Done. Pass it to implementers and verifiers as the primary completion signal. "Done when" is not metadata — it's the contract.
+- **Inline evaluation first, aggregate fallback** — prioritize inline evaluation criteria from each task. Fall back to aggregate tables only when inline is missing (backward compatibility).
 - **Fail fast on deterministic checks** — they're cheap. Run them before expensive adversarial review.
 - **Adversarial is non-negotiable** — the verifier is always a different model. This is the quality guarantee.
 - **Parallel where possible** — independent tasks should never wait for each other.

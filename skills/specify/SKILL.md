@@ -104,7 +104,27 @@ Decompose the work into discrete, independently verifiable sub-tasks. Each task 
 - **Concrete enough** to know when it's done
 - **Ordered** so each builds on the last, with blockers marked
 
-These are the deliverables. Each one should be demoable or verifiable on its own.
+**Definition of Done and Evaluation are MANDATORY for every task.** For each task, you MUST explicitly define:
+
+1. **Done When (Definition of Done)** — The observable completion criterion. NOT "code is written" or "feature is implemented". ASK:
+   - *"What specific state or behavior proves this task is complete?"*
+   - *"If you walked away and came back tomorrow, what would you check to verify this is done?"*
+   - *"What would you show me to demonstrate completion?"*
+
+2. **Evaluation Criteria** — The specific checks that verify this task is done correctly. Link each task directly to its verification. ASK:
+   - *"What deterministic check proves this task works? A test that passes? A command that succeeds? A file that exists?"*
+   - *"If this task has no automated check, what would you judge manually? What's the rubric?"*
+   - *"On a scale of 1–5, what does 'good enough' look like for this task? What's the minimum acceptable score?"*
+
+**Push back hard if:**
+- A task has no clear Definition of Done ("when the code is written" is NOT a DoD)
+- A task has no evaluation criteria (every task must be verifiable)
+- A DoD is vague or subjective without a corresponding LLM-as-judge rubric
+- The user says "we'll figure out testing later" (evaluation criteria are defined NOW, not later)
+
+Make DoD and evaluation criteria first-class concerns. They are not optional metadata — they ARE the spec. A task without a clear DoD and evaluation criteria is not a task, it's a wish.
+
+These are the deliverables. Each one must be independently demoable, verifiable, and measurable.
 
 ---
 
@@ -229,17 +249,25 @@ The finished behavioral state. Describe as user journeys and observable outcomes
 
 - **Depends on**: none
 - **Description**: what to do
-- **Done when**: observable completion criterion
+- **Done when**: <observable completion criterion — specific state or behavior that proves completion>
+- **Evaluation**: 
+  - **Deterministic check**: <command/test that must pass> → <expected result>
+  - **LLM-as-judge** (if applicable): <aspect to judge> → <1-5 scale: what does each score mean> → Pass ≥ <N>
 
 ### Task 2: <Name>
 
 - **Depends on**: Task 1
 - **Description**: what to do
-- **Done when**: observable completion criterion
+- **Done when**: <observable completion criterion — specific state or behavior that proves completion>
+- **Evaluation**: 
+  - **Deterministic check**: <command/test that must pass> → <expected result>
+  - **LLM-as-judge** (if applicable): <aspect to judge> → <1-5 scale: what does each score mean> → Pass ≥ <N>
 
 ---
 
 ## Evaluation Criteria
+
+> **Note**: Each task above includes its own evaluation criteria inline. This section aggregates all criteria into verification tables for the implementing and verifying agents.
 
 ### Deterministic Checks
 
