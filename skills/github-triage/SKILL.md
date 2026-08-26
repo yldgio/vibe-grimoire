@@ -78,7 +78,9 @@ with these steps:
 Do not take the claim at face value.
 
 - **Bug** — reproduce it from the reporter's steps. Report: confirmed (name the
-  code path that produces it), failed to reproduce, or insufficient detail.
+  code path that produces it), failed to reproduce, or insufficient detail. When
+  confirmed, identify the responsible commit (`git log` / `git blame` on the code
+  path) and its author's GitHub login — this becomes the issue assignee.
 - **PR** — check out the branch and confirm the diff does what it claims; run the
   relevant tests or commands. Report: confirmed, failed, or insufficient detail.
 - **Enhancement** — assess whether the request is specified precisely enough to
